@@ -365,6 +365,24 @@ button { border: none; cursor: pointer; }
 
 .back .card-footer { color: rgba(255, 255, 255, 0.58); }
 
+.card[data-mode="terms"] .back > div:first-child {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.card[data-mode="terms"] .back .definition {
+  max-width: 95%;
+  margin: 24px auto 0;
+  font-size: clamp(34px, 5vw, 58px);
+  line-height: 1.05;
+  letter-spacing: -0.06em;
+  font-weight: 950;
+  text-align: center;
+}
+
 .actions {
   display: grid;
   grid-template-columns: 1fr 1.18fr 1fr;
@@ -524,6 +542,11 @@ button { border: none; cursor: pointer; }
   .card-face { padding: 22px; }
   .term { font-size: clamp(27px, 9vw, 42px); }
   .definition { font-size: 17px; }
+
+  .card[data-mode="terms"] .back .definition {
+    font-size: clamp(28px, 9vw, 44px);
+    text-align: center;
+  }
   .actions { grid-template-columns: 1fr; }
   .action-btn { min-height: 54px; border-radius: 18px; }
   .search-row { grid-template-columns: 1fr; }
@@ -3163,6 +3186,8 @@ function render() {
   const s = currentState();
   const config = currentConfig();
   const item = currentCard();
+
+  els.card.dataset.mode = activeMode;
 
   els.frontTag.textContent = config.frontTag;
   els.backTag.textContent = config.backTag;
