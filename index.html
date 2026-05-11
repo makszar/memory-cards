@@ -1,0 +1,3322 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Memory Cards Trainer</title>
+  <meta name="description" content="Тренажер карточек для изучения терминов, переводов и определений." />
+  <style>
+
+:root {
+  --bg: #f4f0e8;
+  --paper: #fffaf1;
+  --white: #ffffff;
+  --text: #211f1b;
+  --muted: #716b62;
+  --accent: #ff7a3d;
+  --accent-2: #ffb84d;
+  --good: #4f9b64;
+  --bad: #e25f52;
+  --line: rgba(33, 31, 27, 0.12);
+  --shadow: 0 24px 70px rgba(36, 30, 20, 0.16);
+  --radius: 32px;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  min-height: 100%;
+  margin: 0;
+}
+
+body {
+  overflow-x: hidden;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+  background:
+    radial-gradient(circle at top left, rgba(255, 122, 61, 0.18), transparent 30%),
+    radial-gradient(circle at bottom right, rgba(70, 110, 255, 0.14), transparent 32%),
+    var(--bg);
+  color: var(--text);
+}
+
+button, input { font: inherit; }
+button { border: none; cursor: pointer; }
+
+.noise {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.23;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.26'/%3E%3C/svg%3E");
+  mix-blend-mode: multiply;
+}
+
+.page {
+  position: relative;
+  z-index: 1;
+  width: min(920px, calc(100% - 28px));
+  margin: 0 auto;
+  padding: 24px 0 52px;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand-mark {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 15px;
+  color: #fff;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  box-shadow: 0 12px 30px rgba(255, 122, 61, 0.34);
+}
+
+.brand-title {
+  font-weight: 900;
+  letter-spacing: -0.04em;
+}
+
+.brand-subtitle {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.trainer {
+  width: min(640px, 100%);
+  margin: 0 auto;
+  padding: 20px;
+  border-radius: 42px;
+  background: rgba(255, 250, 241, 0.68);
+  border: 1px solid rgba(255, 255, 255, 0.64);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(22px);
+  animation: rise 0.55s ease both;
+}
+
+.tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 6px;
+  margin-bottom: 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.58);
+  border: 1px solid var(--line);
+}
+
+.tab-btn {
+  min-height: 46px;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font-weight: 900;
+  transition: transform 0.18s ease, background 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.tab-btn.is-active {
+  color: white;
+  background: var(--text);
+  box-shadow: 0 14px 28px rgba(33, 31, 27, 0.18);
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.stat {
+  min-height: 48px;
+  display: grid;
+  place-items: center;
+  padding: 8px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.64);
+  border: 1px solid var(--line);
+  text-align: center;
+}
+
+.stat span {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.stat b {
+  color: var(--text);
+  font-size: 15px;
+}
+
+.mix-btn, .soft-btn {
+  min-height: 48px;
+  padding: 0 17px;
+  border-radius: 999px;
+  font-weight: 900;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.mix-btn {
+  color: #fff;
+  background: var(--text);
+  box-shadow: 0 14px 28px rgba(33, 31, 27, 0.2);
+}
+
+.soft-btn {
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.68);
+  border: 1px solid var(--line);
+}
+
+.mix-btn:hover, .soft-btn:hover, .action-btn:hover, .tab-btn:hover { transform: translateY(-2px); }
+.mix-btn:active, .soft-btn:active, .action-btn:active, .tab-btn:active { transform: translateY(0) scale(0.98); }
+
+.deck {
+  position: relative;
+  height: 430px;
+  perspective: 1400px;
+  touch-action: pan-y;
+}
+
+.ghost-card {
+  position: absolute;
+  inset: 22px 18px auto;
+  height: 370px;
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.54);
+  border: 1px solid rgba(33, 31, 27, 0.08);
+  transform-origin: center bottom;
+  pointer-events: none;
+}
+
+.ghost-card-1 {
+  transform: translateY(18px) scale(0.94) rotate(-3deg);
+  opacity: 0.65;
+}
+
+.ghost-card-2 {
+  transform: translateY(34px) scale(0.89) rotate(4deg);
+  opacity: 0.38;
+}
+
+.card {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 400px;
+  padding: 0;
+  background: transparent;
+  transform-style: preserve-3d;
+  transition: transform 0.48s cubic-bezier(.2,.85,.28,1.15), opacity 0.28s ease;
+  will-change: transform, opacity;
+}
+
+.card.is-flipped { transform: rotateY(180deg); }
+.card.swipe-left { animation: swipeLeft 0.34s ease both; }
+.card.swipe-right { animation: swipeRight 0.34s ease both; }
+.card.is-dragging { transition: none; }
+
+.card-face {
+  position: absolute;
+  inset: 0;
+  min-height: 400px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 30px;
+  overflow: hidden;
+  border-radius: var(--radius);
+  backface-visibility: hidden;
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, 0.94), rgba(255, 250, 241, 0.96)),
+    var(--white);
+  border: 1px solid rgba(33, 31, 27, 0.1);
+  box-shadow: 0 24px 70px rgba(33, 31, 27, 0.18);
+  text-align: center;
+}
+
+.card-face::before {
+  content: "";
+  position: absolute;
+  width: 210px;
+  height: 210px;
+  right: -80px;
+  top: -86px;
+  border-radius: 50%;
+  background: rgba(255, 122, 61, 0.12);
+}
+
+.back {
+  transform: rotateY(180deg);
+  color: white;
+  background:
+    linear-gradient(160deg, rgba(33, 31, 27, 0.97), rgba(57, 49, 40, 0.96)),
+    var(--text);
+}
+
+.back::before { background: rgba(255, 184, 77, 0.12); }
+
+.tag {
+  position: relative;
+  display: inline-flex;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 900;
+  background: rgba(255, 255, 255, 0.62);
+}
+
+.back .tag {
+  color: rgba(255, 255, 255, 0.72);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+.term {
+  position: relative;
+  max-width: 95%;
+  margin: 34px auto 22px;
+  overflow-wrap: anywhere;
+  font-size: clamp(30px, 5vw, 50px);
+  line-height: 1.04;
+  letter-spacing: -0.06em;
+  font-weight: 950;
+}
+
+.definition {
+  position: relative;
+  max-width: 96%;
+  margin: 30px auto 0;
+  overflow-wrap: anywhere;
+  font-size: clamp(17px, 2.35vw, 24px);
+  line-height: 1.45;
+  letter-spacing: -0.03em;
+  font-weight: 760;
+  text-align: left;
+}
+
+.hint {
+  position: relative;
+  margin: 0 auto;
+  max-width: 440px;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.card-footer {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.back .card-footer { color: rgba(255, 255, 255, 0.58); }
+
+.actions {
+  display: grid;
+  grid-template-columns: 1fr 1.18fr 1fr;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.action-btn {
+  min-height: 58px;
+  border-radius: 22px;
+  font-weight: 950;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.unknown-btn {
+  color: var(--bad);
+  background: rgba(226, 95, 82, 0.1);
+  border: 1px solid rgba(226, 95, 82, 0.22);
+}
+
+.known-btn {
+  color: var(--good);
+  background: rgba(79, 155, 100, 0.12);
+  border: 1px solid rgba(79, 155, 100, 0.24);
+}
+
+.flip-btn {
+  color: white;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  box-shadow: 0 16px 32px rgba(255, 122, 61, 0.34);
+}
+
+.search-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.search {
+  width: 100%;
+  min-height: 52px;
+  padding: 0 16px;
+  color: var(--text);
+  outline: none;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.68);
+  transition: box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.search:focus {
+  border-color: rgba(255, 122, 61, 0.52);
+  box-shadow: 0 0 0 4px rgba(255, 122, 61, 0.12);
+}
+
+.clear-btn { border-radius: 18px; }
+
+.help {
+  margin: 16px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  z-index: 30;
+  max-width: min(520px, calc(100% - 24px));
+  padding: 12px 16px;
+  border-radius: 999px;
+  background: var(--text);
+  color: white;
+  font-weight: 900;
+  box-shadow: 0 16px 34px rgba(33, 31, 27, 0.22);
+  opacity: 0;
+  transform: translate(-50%, 24px);
+  transition: 0.22s ease;
+  pointer-events: none;
+  text-align: center;
+}
+
+.toast.is-visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes swipeLeft {
+  0% { transform: translateX(0) rotate(0deg) scale(1); opacity: 1; }
+  48% { transform: translateX(-155px) rotate(-8deg) scale(0.96); opacity: 0; }
+  49% { transform: translateX(120px) rotate(6deg) scale(0.96); opacity: 0; }
+  100% { transform: translateX(0) rotate(0deg) scale(1); opacity: 1; }
+}
+
+@keyframes swipeRight {
+  0% { transform: translateX(0) rotate(0deg) scale(1); opacity: 1; }
+  48% { transform: translateX(155px) rotate(8deg) scale(0.96); opacity: 0; }
+  49% { transform: translateX(-120px) rotate(-6deg) scale(0.96); opacity: 0; }
+  100% { transform: translateX(0) rotate(0deg) scale(1); opacity: 1; }
+}
+
+@media (max-width: 640px) {
+  .page {
+    width: min(100% - 18px, 920px);
+    padding-top: 14px;
+  }
+
+  .topbar { align-items: flex-start; }
+
+  .trainer {
+    padding: 13px;
+    border-radius: 30px;
+  }
+
+  .stats { grid-template-columns: 1fr 1fr; }
+  .mix-btn { width: 100%; }
+
+  .deck { height: 400px; }
+
+  .card, .card-face {
+    min-height: 370px;
+    height: 370px;
+  }
+
+  .card-face { padding: 22px; }
+  .term { font-size: clamp(27px, 9vw, 42px); }
+  .definition { font-size: 17px; }
+  .actions { grid-template-columns: 1fr; }
+  .action-btn { min-height: 54px; border-radius: 18px; }
+  .search-row { grid-template-columns: 1fr; }
+  .clear-btn { width: 100%; }
+}
+
+  </style>
+</head>
+<body>
+  <div class="noise" aria-hidden="true"></div>
+
+  <main class="page">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark">MC</div>
+        <div>
+          <div class="brand-title">Memory Cards</div>
+          <div class="brand-subtitle">тренажер терминов</div>
+        </div>
+      </div>
+      <button class="soft-btn" id="resetBtn" type="button">Сбросить</button>
+    </header>
+
+    <section class="trainer" aria-label="Тренажер карточек">
+      <div class="tabs" role="tablist" aria-label="Режим тренировки">
+        <button class="tab-btn is-active" type="button" role="tab" aria-selected="true" data-mode="terms">Перевод</button>
+        <button class="tab-btn" type="button" role="tab" aria-selected="false" data-mode="definitions">Определения</button>
+      </div>
+
+      <div class="stats">
+        <div class="stat">
+          <span>карточка</span>
+          <b id="progressText">1 / 280</b>
+        </div>
+        <div class="stat">
+          <span>на повтор</span>
+          <b id="repeatText">0</b>
+        </div>
+        <div class="stat">
+          <span>круг</span>
+          <b id="roundText">1</b>
+        </div>
+        <button class="mix-btn" id="mixBtn" type="button">Mix</button>
+      </div>
+
+      <div class="deck" id="deck">
+        <div class="ghost-card ghost-card-2" aria-hidden="true"></div>
+        <div class="ghost-card ghost-card-1" aria-hidden="true"></div>
+
+        <button class="card" id="card" type="button" aria-label="Перевернуть карточку">
+          <div class="card-face front">
+            <div>
+              <span class="tag" id="frontTag">RU - лицевая сторона</span>
+              <h1 class="term" id="frontText">Загрузка...</h1>
+              <p class="hint" id="frontHint">Нажми на карточку, чтобы увидеть перевод.</p>
+            </div>
+            <div class="card-footer">
+              <span>← не знаю</span>
+              <span>знаю →</span>
+            </div>
+          </div>
+
+          <div class="card-face back">
+            <div>
+              <span class="tag" id="backTag">EN - перевод</span>
+              <div class="definition" id="backText">Loading...</div>
+            </div>
+            <div class="card-footer">
+              <span>← не знаю</span>
+              <span>знаю →</span>
+            </div>
+          </div>
+        </button>
+      </div>
+
+      <div class="actions">
+        <button class="action-btn unknown-btn" id="unknownBtn" type="button">← Не знаю</button>
+        <button class="action-btn flip-btn" id="flipBtn" type="button">Показать перевод</button>
+        <button class="action-btn known-btn" id="knownBtn" type="button">Знаю →</button>
+      </div>
+
+      <div class="search-row">
+        <input class="search" id="searchInput" type="search" placeholder="Фильтр по карточкам..." />
+        <button class="soft-btn clear-btn" id="clearBtn" type="button">Очистить</button>
+      </div>
+
+      <p class="help">Свайп справа налево - не знаю. Свайп слева направо - знаю. Пробел переворачивает карточку.</p>
+    </section>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+window.TRAINER_DATA = {
+  "terms": [
+    {
+      "id": "term-001",
+      "front": "точка доступа",
+      "back": "access point"
+    },
+    {
+      "id": "term-002",
+      "front": "время доступа",
+      "back": "access time (seek time)"
+    },
+    {
+      "id": "term-003",
+      "front": "сложение",
+      "back": "addition"
+    },
+    {
+      "id": "term-004",
+      "front": "рекламное ПО",
+      "back": "adware"
+    },
+    {
+      "id": "term-005",
+      "front": "искусственный интеллект",
+      "back": "AI (artificial intelligence)"
+    },
+    {
+      "id": "term-006",
+      "front": "аналоговый, цифровой сигналы",
+      "back": "analog and digital signals"
+    },
+    {
+      "id": "term-007",
+      "front": "код приложения",
+      "back": "application code"
+    },
+    {
+      "id": "term-008",
+      "front": "приложение",
+      "back": "application/ app"
+    },
+    {
+      "id": "term-009",
+      "front": "дополненная реальность",
+      "back": "AR (augmented reality)"
+    },
+    {
+      "id": "term-010",
+      "front": "арифметико-логическое устройство",
+      "back": "ALU (Arithmetic Logic Unit)"
+    },
+    {
+      "id": "term-011",
+      "front": "искусственная нейронная сеть, ИНС",
+      "back": "artificial neural network"
+    },
+    {
+      "id": "term-012",
+      "front": "ассемблер",
+      "back": "аssembler"
+    },
+    {
+      "id": "term-013",
+      "front": "языки ассемблера, низкоуровневые языки, близкие к ассемблеру",
+      "back": "assembly languages"
+    },
+    {
+      "id": "term-014",
+      "front": "асинхронная передача данных",
+      "back": "asynchronous transmission"
+    },
+    {
+      "id": "term-015",
+      "front": "затухание (ослабление) сигнала",
+      "back": "attenuation of a signal"
+    },
+    {
+      "id": "term-016",
+      "front": "магистраль",
+      "back": "backbone"
+    },
+    {
+      "id": "term-017",
+      "front": "лазейка в системе безопасности",
+      "back": "backdoor"
+    },
+    {
+      "id": "term-018",
+      "front": "разработка серверных компонентов приложения",
+      "back": "backend development"
+    },
+    {
+      "id": "term-019",
+      "front": "фоновые шаблоны",
+      "back": "background templates"
+    },
+    {
+      "id": "term-020",
+      "front": "алгоритм обратного распространения ошибки",
+      "back": "backpropagation"
+    },
+    {
+      "id": "term-021",
+      "front": "резервное копирование",
+      "back": "backup"
+    },
+    {
+      "id": "term-022",
+      "front": "пропускная способность (ширина полосы пропускания)",
+      "back": "bandwidth"
+    },
+    {
+      "id": "term-023",
+      "front": "базовая система ввода/вывода",
+      "back": "BIOS (Basic Input/Output System)"
+    },
+    {
+      "id": "term-024",
+      "front": "аккумуляторная батарея",
+      "back": "battery pack"
+    },
+    {
+      "id": "term-025",
+      "front": "двоичный код",
+      "back": "binary code"
+    },
+    {
+      "id": "term-026",
+      "front": "биометрические средства защиты",
+      "back": "biometric security devices"
+    },
+    {
+      "id": "term-027",
+      "front": "мост",
+      "back": "bridge"
+    },
+    {
+      "id": "term-028",
+      "front": "широкополосный интернет",
+      "back": "broadband connection"
+    },
+    {
+      "id": "term-029",
+      "front": "встроенная камера",
+      "back": "built-in webcam"
+    },
+    {
+      "id": "term-030",
+      "front": "шина",
+      "back": "bus"
+    },
+    {
+      "id": "term-031",
+      "front": "разрядность шины",
+      "back": "bus width"
+    },
+    {
+      "id": "term-032",
+      "front": "топология общая шина",
+      "back": "bus topology"
+    },
+    {
+      "id": "term-033",
+      "front": "когерентность кэша",
+      "back": "cache coherency"
+    },
+    {
+      "id": "term-034",
+      "front": "попадание в кэш",
+      "back": "cache hit"
+    },
+    {
+      "id": "term-035",
+      "front": "промах кэша",
+      "back": "cache miss"
+    },
+    {
+      "id": "term-036",
+      "front": "размер кэш-строки",
+      "back": "cache line size"
+    },
+    {
+      "id": "term-037",
+      "front": "вычисления",
+      "back": "calculations"
+    },
+    {
+      "id": "term-038",
+      "front": "конденсатор (электронный компонент, накапливающий заряд)",
+      "back": "capacitor"
+    },
+    {
+      "id": "term-039",
+      "front": "сотовая связь",
+      "back": "cellular connection"
+    },
+    {
+      "id": "term-040",
+      "front": "центральный процессор",
+      "back": "CPU (Central Processing Unit)"
+    },
+    {
+      "id": "term-041",
+      "front": "печатная плата",
+      "back": "circuit board"
+    },
+    {
+      "id": "term-042",
+      "front": "архитектура клиент-сервер",
+      "back": "client-server architecture"
+    },
+    {
+      "id": "term-043",
+      "front": "тактовая частота",
+      "back": "clock speed"
+    },
+    {
+      "id": "term-044",
+      "front": "облачные вычисления",
+      "back": "cloud computing"
+    },
+    {
+      "id": "term-045",
+      "front": "коаксиальный кабель",
+      "back": "coaxial cable"
+    },
+    {
+      "id": "term-046",
+      "front": "совместимый",
+      "back": "compatible"
+    },
+    {
+      "id": "term-047",
+      "front": "компилятор",
+      "back": "compiler"
+    },
+    {
+      "id": "term-048",
+      "front": "согласованные данные",
+      "back": "consistent data"
+    },
+    {
+      "id": "term-049",
+      "front": "блок управления",
+      "back": "control unit"
+    },
+    {
+      "id": "term-050",
+      "front": "кооперативная многозадачность; совместная многозадачность, невытесняющая многозадачность",
+      "back": "cooperative multitasking"
+    },
+    {
+      "id": "term-051",
+      "front": "медный провод",
+      "back": "copper cable"
+    },
+    {
+      "id": "term-052",
+      "front": "автоматизированная поисковая система",
+      "back": "crawler-based search engine"
+    },
+    {
+      "id": "term-053",
+      "front": "поиск (сканирование информации)",
+      "back": "crawling"
+    },
+    {
+      "id": "term-054",
+      "front": "каскадные таблицы стилей",
+      "back": "CSS (Cascading Style Sheets)"
+    },
+    {
+      "id": "term-055",
+      "front": "канальный уровень",
+      "back": "data link layer"
+    },
+    {
+      "id": "term-056",
+      "front": "передача данных",
+      "back": "data transmission"
+    },
+    {
+      "id": "term-057",
+      "front": "коммутация дейтаграммных пакетов",
+      "back": "datagram packet switching"
+    },
+    {
+      "id": "term-058",
+      "front": "распределённая атака на отказ в обслуживании",
+      "back": "DDoS attack (Distributed Denial of Service)"
+    },
+    {
+      "id": "term-059",
+      "front": "отладка",
+      "back": "debugging"
+    },
+    {
+      "id": "term-060",
+      "front": "выделенная линия",
+      "back": "dedicated line"
+    },
+    {
+      "id": "term-061",
+      "front": "настройки по умолчанию (стандартные)",
+      "back": "default settings"
+    },
+    {
+      "id": "term-062",
+      "front": "задержка (передачи сигнала)",
+      "back": "delay/ latency"
+    },
+    {
+      "id": "term-063",
+      "front": "стационарный компьютер",
+      "back": "desktop PC"
+    },
+    {
+      "id": "term-064",
+      "front": "съемная клавиатура",
+      "back": "detachable keyboard"
+    },
+    {
+      "id": "term-065",
+      "front": "коммутируемое соединение",
+      "back": "dial-up connection"
+    },
+    {
+      "id": "term-066",
+      "front": "частичное копирование, разностное резервное копирование (выполняет копирование файлов, созданных или измененных с момента обычного (или добавочного) архивирования.",
+      "back": "differential backup"
+    },
+    {
+      "id": "term-067",
+      "front": "цифровой сигнал",
+      "back": "digital signal"
+    },
+    {
+      "id": "term-068",
+      "front": "цифровая абонентская линия",
+      "back": "DSL (Digital Subscriber Line)"
+    },
+    {
+      "id": "term-069",
+      "front": "каталог, папка",
+      "back": "directory"
+    },
+    {
+      "id": "term-070",
+      "front": "искажение сигнала (расхождение)",
+      "back": "distortion of a signal"
+    },
+    {
+      "id": "term-071",
+      "front": "деление",
+      "back": "division"
+    },
+    {
+      "id": "term-072",
+      "front": "скорость скачивания (загрузки)",
+      "back": "download speed"
+    },
+    {
+      "id": "term-073",
+      "front": "инкапсуляция (for OOP)",
+      "back": "encapsulation"
+    },
+    {
+      "id": "term-074",
+      "front": "шифрование",
+      "back": "encryption"
+    },
+    {
+      "id": "term-075",
+      "front": "энергопотребление",
+      "back": "energy consumption"
+    },
+    {
+      "id": "term-076",
+      "front": "перезаписываемый, допускающий возможность стирания",
+      "back": "erasable"
+    },
+    {
+      "id": "term-077",
+      "front": "исполняемый файл",
+      "back": "executable file"
+    },
+    {
+      "id": "term-078",
+      "front": "карта расширения",
+      "back": "expansion card"
+    },
+    {
+      "id": "term-079",
+      "front": "слоты расширения",
+      "back": "expansion slots"
+    },
+    {
+      "id": "term-080",
+      "front": "внешний жёсткий диск",
+      "back": "external hard disk drive (HDD)"
+    },
+    {
+      "id": "term-081",
+      "front": "характеристика, особенность",
+      "back": "feature"
+    },
+    {
+      "id": "term-082",
+      "front": "оптоволоконный кабель",
+      "back": "fiber-optic cables"
+    },
+    {
+      "id": "term-083",
+      "front": "брэндмауэр, межсетевой экран",
+      "back": "firewall"
+    },
+    {
+      "id": "term-084",
+      "front": "прошивка",
+      "back": "firmware"
+    },
+    {
+      "id": "term-085",
+      "front": "флэшка",
+      "back": "flash drive"
+    },
+    {
+      "id": "term-086",
+      "front": "транзистор с плавающим затвором",
+      "back": "floating gate transistor"
+    },
+    {
+      "id": "term-087",
+      "front": "дискета",
+      "back": "floppy disk"
+    },
+    {
+      "id": "term-088",
+      "front": "шрифт",
+      "back": "font"
+    },
+    {
+      "id": "term-089",
+      "front": "нижний колонтитул",
+      "back": "footer"
+    },
+    {
+      "id": "term-090",
+      "front": "форматирование",
+      "back": "formatting"
+    },
+    {
+      "id": "term-091",
+      "front": "бесплатное ПО",
+      "back": "freeware"
+    },
+    {
+      "id": "term-092",
+      "front": "системная (фронтальная) шина",
+      "back": "front side bus"
+    },
+    {
+      "id": "term-093",
+      "front": "протокол передачи данных",
+      "back": "FTP (File Transfer Protocol)"
+    },
+    {
+      "id": "term-094",
+      "front": "полносвязные нейросети",
+      "back": "fully connected neural networks"
+    },
+    {
+      "id": "term-095",
+      "front": "шлюз, межсетевой шлюз сетевое устройство или компьютер",
+      "back": "gateway"
+    },
+    {
+      "id": "term-096",
+      "front": "геостационарный спутник",
+      "back": "geostationary satellite"
+    },
+    {
+      "id": "term-097",
+      "front": "графический интерфейс пользователя",
+      "back": "GUI (Graphical User Interface)"
+    },
+    {
+      "id": "term-098",
+      "front": "портативные устройства",
+      "back": "handheld, palmtop, portable devices"
+    },
+    {
+      "id": "term-099",
+      "front": "аппаратное техническое обеспечение",
+      "back": "hardware"
+    },
+    {
+      "id": "term-100",
+      "front": "верхний колонтитул",
+      "back": "header"
+    },
+    {
+      "id": "term-101",
+      "front": "авария головки (поломка магнитной головки у HDD)",
+      "back": "head crash"
+    },
+    {
+      "id": "term-102",
+      "front": "наушники",
+      "back": "headphones"
+    },
+    {
+      "id": "term-103",
+      "front": "сотрудник службы технической поддержки",
+      "back": "help-desk troubleshooter (technician)"
+    },
+    {
+      "id": "term-104",
+      "front": "эвристическое сканирование",
+      "back": "heuristic scanning"
+    },
+    {
+      "id": "term-105",
+      "front": "скрытые элементы",
+      "back": "hidden units"
+    },
+    {
+      "id": "term-106",
+      "front": "высокоуровневый язык",
+      "back": "high level language"
+    },
+    {
+      "id": "term-107",
+      "front": "высокоскоростное интернет-соединение",
+      "back": "high-speed Internet connection"
+    },
+    {
+      "id": "term-108",
+      "front": "межсетевой экран узлов (software)",
+      "back": "host-based firewall"
+    },
+    {
+      "id": "term-109",
+      "front": "общая точка доступа",
+      "back": "hot spot"
+    },
+    {
+      "id": "term-110",
+      "front": "язык разметки гипертекста",
+      "back": "HTML (Hypertext Markup Language)"
+    },
+    {
+      "id": "term-111",
+      "front": "протокол гипертекстовой передачи",
+      "back": "HTTP (Hyper Text Transfer Protocol)"
+    },
+    {
+      "id": "term-112",
+      "front": "концентратор или повторитель",
+      "back": "hub"
+    },
+    {
+      "id": "term-113",
+      "front": "веб-каталог",
+      "back": "human-powered directory"
+    },
+    {
+      "id": "term-114",
+      "front": "гиперссылки",
+      "back": "hyperlinks"
+    },
+    {
+      "id": "term-115",
+      "front": "выборочное копирование",
+      "back": "incremental backup"
+    },
+    {
+      "id": "term-116",
+      "front": "индексирование",
+      "back": "indexing"
+    },
+    {
+      "id": "term-117",
+      "front": "отступ",
+      "back": "indent"
+    },
+    {
+      "id": "term-118",
+      "front": "устройство ввода/вывода информации",
+      "back": "input/ output device"
+    },
+    {
+      "id": "term-119",
+      "front": "регистр инструкций",
+      "back": "IR (Instruction Register)"
+    },
+    {
+      "id": "term-120",
+      "front": "микросхема, интегральная схема",
+      "back": "integrated circuits"
+    },
+    {
+      "id": "term-121",
+      "front": "взаимосвязанные узлы",
+      "back": "interconnected nodes"
+    },
+    {
+      "id": "term-122",
+      "front": "внутреннее/внешнее устройство хранения",
+      "back": "internal/external storage device"
+    },
+    {
+      "id": "term-123",
+      "front": "доступ к интернету",
+      "back": "Internet access"
+    },
+    {
+      "id": "term-124",
+      "front": "интерпретатор",
+      "back": "interpreter"
+    },
+    {
+      "id": "term-125",
+      "front": "наследование",
+      "back": "inheritance"
+    },
+    {
+      "id": "term-126",
+      "front": "интернет вещей",
+      "back": "IoT (the Internet of Things)"
+    },
+    {
+      "id": "term-127",
+      "front": "команда перехода",
+      "back": "jump command"
+    },
+    {
+      "id": "term-128",
+      "front": "ядро",
+      "back": "kernel"
+    },
+    {
+      "id": "term-129",
+      "front": "основные характеристики, отличительные признаки",
+      "back": "key features"
+    },
+    {
+      "id": "term-130",
+      "front": "клавиатурный шпион",
+      "back": "keylogger"
+    },
+    {
+      "id": "term-131",
+      "front": "ноутбук",
+      "back": "laptop"
+    },
+    {
+      "id": "term-132",
+      "front": "лазерный луч",
+      "back": "laser beam"
+    },
+    {
+      "id": "term-133",
+      "front": "расположение, макет (сайта)",
+      "back": "layout"
+    },
+    {
+      "id": "term-134",
+      "front": "межстрочный интервал",
+      "back": "line spacing"
+    },
+    {
+      "id": "term-135",
+      "front": "локальная сеть",
+      "back": "LAN (Local Area Network)"
+    },
+    {
+      "id": "term-136",
+      "front": "жидкокристаллический дисплей",
+      "back": "LCD (liquid crystal display)"
+    },
+    {
+      "id": "term-137",
+      "front": "нижный регистр",
+      "back": "lowercase"
+    },
+    {
+      "id": "term-138",
+      "front": "низкоуровневый язык",
+      "back": "low-level language"
+    },
+    {
+      "id": "term-139",
+      "front": "машинное обучение",
+      "back": "machine learning"
+    },
+    {
+      "id": "term-140",
+      "front": "магнитная лента",
+      "back": "magnetic tape"
+    },
+    {
+      "id": "term-141",
+      "front": "мейнфрейм, мощный сервер",
+      "back": "mainframe"
+    },
+    {
+      "id": "term-142",
+      "front": "сделать резервную копию",
+      "back": "make a backup"
+    },
+    {
+      "id": "term-143",
+      "front": "вредоносное ПО",
+      "back": "malware"
+    },
+    {
+      "id": "term-144",
+      "front": "городская сеть",
+      "back": "MAN (Metropolitan Area Network)"
+    },
+    {
+      "id": "term-145",
+      "front": "поля",
+      "back": "margins"
+    },
+    {
+      "id": "term-146",
+      "front": "теги разметки",
+      "back": "markup tags"
+    },
+    {
+      "id": "term-147",
+      "front": "выделение памяти, распределение памяти",
+      "back": "memory allocation"
+    },
+    {
+      "id": "term-148",
+      "front": "объём памяти",
+      "back": "memory capacity"
+    },
+    {
+      "id": "term-149",
+      "front": "карта памяти",
+      "back": "memory card"
+    },
+    {
+      "id": "term-150",
+      "front": "топология сетки, ячеистая топология, многосвязная сеть",
+      "back": "mesh topology"
+    },
+    {
+      "id": "term-151",
+      "front": "метапоисковая система",
+      "back": "Meta-Search engine"
+    },
+    {
+      "id": "term-152",
+      "front": "процедура дезориентации",
+      "back": "misdirection routine"
+    },
+    {
+      "id": "term-153",
+      "front": "многоядерный процессор",
+      "back": "multi-core CPU"
+    },
+    {
+      "id": "term-154",
+      "front": "умножение",
+      "back": "multiplication"
+    },
+    {
+      "id": "term-155",
+      "front": "многозадачный",
+      "back": "multi-tasking"
+    },
+    {
+      "id": "term-156",
+      "front": "вложенные папки",
+      "back": "nested folders"
+    },
+    {
+      "id": "term-157",
+      "front": "безопасность в сети",
+      "back": "network security"
+    },
+    {
+      "id": "term-158",
+      "front": "топология сети",
+      "back": "network topology (ring, star, bus, tree)"
+    },
+    {
+      "id": "term-159",
+      "front": "сетевой брандмауэр (combination of software and hardware)",
+      "back": "network-based firewall"
+    },
+    {
+      "id": "term-160",
+      "front": "нейронная сеть",
+      "back": "neural network"
+    },
+    {
+      "id": "term-161",
+      "front": "узел, устройство подключенное к компьютерной сети",
+      "back": "node"
+    },
+    {
+      "id": "term-162",
+      "front": "энергонезависимый",
+      "back": "non-volatile"
+    },
+    {
+      "id": "term-163",
+      "front": "внешняя поисковая оптимизация",
+      "back": "Off-Page SEO"
+    },
+    {
+      "id": "term-164",
+      "front": "пакет офисных приложений",
+      "back": "office suite (package)"
+    },
+    {
+      "id": "term-165",
+      "front": "поисковая оптимизация страницы",
+      "back": "On-Page SEO"
+    },
+    {
+      "id": "term-166",
+      "front": "программы с открытым исходным кодом",
+      "back": "open-source software"
+    },
+    {
+      "id": "term-167",
+      "front": "естественные результаты (работы поисковой машины, противопоставляются \"спонсированным\" (оплаченным рекламодателем) результатам",
+      "back": "organic results"
+    },
+    {
+      "id": "term-168",
+      "front": "модель взаимодействия открытых систем",
+      "back": "OSI model (Open Systems Interconnection)"
+    },
+    {
+      "id": "term-169",
+      "front": "блок вывода",
+      "back": "output unit"
+    },
+    {
+      "id": "term-170",
+      "front": "вирус перезаписи",
+      "back": "overwriting virus"
+    },
+    {
+      "id": "term-171",
+      "front": "пакетная коммутация (передача данных)",
+      "back": "packet switching"
+    },
+    {
+      "id": "term-172",
+      "front": "исходный код страницы",
+      "back": "page source code"
+    },
+    {
+      "id": "term-173",
+      "front": "частица",
+      "back": "particle"
+    },
+    {
+      "id": "term-174",
+      "front": "раздел на жёстком диске",
+      "back": "partition"
+    },
+    {
+      "id": "term-175",
+      "front": "полезная нагрузка",
+      "back": "payload"
+    },
+    {
+      "id": "term-176",
+      "front": "счётчик команд, программный счетчик",
+      "back": "PC (Program Counter)"
+    },
+    {
+      "id": "term-177",
+      "front": "одноранговая сеть",
+      "back": "peer-to-peer architecture"
+    },
+    {
+      "id": "term-178",
+      "front": "производительность",
+      "back": "performance"
+    },
+    {
+      "id": "term-179",
+      "front": "подключаемое оборудование",
+      "back": "peripherals"
+    },
+    {
+      "id": "term-180",
+      "front": "персональная сеть",
+      "back": "PAN (Personal Area Network)"
+    },
+    {
+      "id": "term-181",
+      "front": "повсеместные вычисления",
+      "back": "pervasive computing"
+    },
+    {
+      "id": "term-182",
+      "front": "фишинг, интернет-мошенничество с целью хищения личных данных, выуживание паролей",
+      "back": "phishing"
+    },
+    {
+      "id": "term-183",
+      "front": "несанкционированное проникновение вслед за зарегистрированным пользователем (напр., проникновение в сеть )",
+      "back": "piggybacking"
+    },
+    {
+      "id": "term-184",
+      "front": "ячейка памяти у оптических дисков",
+      "back": "pit"
+    },
+    {
+      "id": "term-185",
+      "front": "открытый текст, незашифрованный текст",
+      "back": "plaintext"
+    },
+    {
+      "id": "term-186",
+      "front": "пластина жёсткого диска",
+      "back": "platter"
+    },
+    {
+      "id": "term-187",
+      "front": "блок питания",
+      "back": "power-supply unit"
+    },
+    {
+      "id": "term-188",
+      "front": "вытесняющая многозадачность, прерывающая программа (программа, вытесняющая из памяти другую программу в соответствии с приоритетом)",
+      "back": "preemptive multitasking"
+    },
+    {
+      "id": "term-189",
+      "front": "основное запоминающее устройство",
+      "back": "primary storage"
+    },
+    {
+      "id": "term-190",
+      "front": "закрытое программное обеспечение (защищённое) (в отличие от программного обеспечения, являющегося открытым (open-source software) )",
+      "back": "proprietary software"
+    },
+    {
+      "id": "term-191",
+      "front": "протокол в общем случае, набор правил",
+      "back": "protocol"
+    },
+    {
+      "id": "term-192",
+      "front": "перфокарта",
+      "back": "punched card"
+    },
+    {
+      "id": "term-193",
+      "front": "оперативное запоминающее устройство (ОЗУ)",
+      "back": "RAM (Random Access Memory)"
+    },
+    {
+      "id": "term-194",
+      "front": "ранжирование (у автоматизированного поисковика)",
+      "back": "ranking"
+    },
+    {
+      "id": "term-195",
+      "front": "программы-вымогатели",
+      "back": "ransomware"
+    },
+    {
+      "id": "term-196",
+      "front": "необработанные данные",
+      "back": "raw data"
+    },
+    {
+      "id": "term-197",
+      "front": "постоянное запоминающее устройство (ПЗУ)",
+      "back": "ROM (Read Only Memory)"
+    },
+    {
+      "id": "term-198",
+      "front": "головка чтения/записи",
+      "back": "read-write head"
+    },
+    {
+      "id": "term-199",
+      "front": "операционная система, управляющая обработкой данных в реальном времени; операционная система реального времени",
+      "back": "real-time OS"
+    },
+    {
+      "id": "term-200",
+      "front": "регистры процессора",
+      "back": "registers (IR, PC)"
+    },
+    {
+      "id": "term-201",
+      "front": "удалённый доступ",
+      "back": "remote access"
+    },
+    {
+      "id": "term-202",
+      "front": "процедура самокопирования/ воспроизводства",
+      "back": "reproduction routine"
+    },
+    {
+      "id": "term-203",
+      "front": "запрос",
+      "back": "request/ query/ search string"
+    },
+    {
+      "id": "term-204",
+      "front": "кольцевая топология",
+      "back": "ring topology"
+    },
+    {
+      "id": "term-205",
+      "front": "робототехника",
+      "back": "robotics"
+    },
+    {
+      "id": "term-206",
+      "front": "маршрутизатор",
+      "back": "router"
+    },
+    {
+      "id": "term-207",
+      "front": "спутниковая связь",
+      "back": "satellite connection"
+    },
+    {
+      "id": "term-208",
+      "front": "доступ к спутниковому интернету",
+      "back": "satellite Internet access"
+    },
+    {
+      "id": "term-209",
+      "front": "поисковая система",
+      "back": "search engine"
+    },
+    {
+      "id": "term-210",
+      "front": "база данных у поисковика",
+      "back": "search index"
+    },
+    {
+      "id": "term-211",
+      "front": "строка поиска",
+      "back": "search box/ search bar"
+    },
+    {
+      "id": "term-212",
+      "front": "меры безопасности",
+      "back": "security measures"
+    },
+    {
+      "id": "term-213",
+      "front": "полупроводник",
+      "back": "semiconductor"
+    },
+    {
+      "id": "term-214",
+      "front": "полупроводниковая технология",
+      "back": "semiconductor technology"
+    },
+    {
+      "id": "term-215",
+      "front": "конфиденциальные данные",
+      "back": "sensitive data"
+    },
+    {
+      "id": "term-216",
+      "front": "поисковая оптимизация",
+      "back": "SEO (Search Engine Optimization)"
+    },
+    {
+      "id": "term-217",
+      "front": "сеансовый уровень",
+      "back": "session layer"
+    },
+    {
+      "id": "term-218",
+      "front": "заливка",
+      "back": "shading"
+    },
+    {
+      "id": "term-219",
+      "front": "условно бесплатное ПО (ПО, предоставляемое на испытательный срок)",
+      "back": "shareware"
+    },
+    {
+      "id": "term-220",
+      "front": "сигнатурное сканирование",
+      "back": "signature-based scanning"
+    },
+    {
+      "id": "term-221",
+      "front": "кремний",
+      "back": "silicon"
+    },
+    {
+      "id": "term-222",
+      "front": "одновременная многопоточность",
+      "back": "SMT (Simultaneous MultiThreading)"
+    },
+    {
+      "id": "term-223",
+      "front": "умные приборы",
+      "back": "smart home appliances"
+    },
+    {
+      "id": "term-224",
+      "front": "программное обеспечение",
+      "back": "software"
+    },
+    {
+      "id": "term-225",
+      "front": "твердотельная технология",
+      "back": "solid state technology"
+    },
+    {
+      "id": "term-226",
+      "front": "исходный ход",
+      "back": "source code"
+    },
+    {
+      "id": "term-227",
+      "front": "колонки",
+      "back": "speakers"
+    },
+    {
+      "id": "term-228",
+      "front": "электронные таблицы",
+      "back": "spreadsheets"
+    },
+    {
+      "id": "term-229",
+      "front": "шпионские программы",
+      "back": "spyware"
+    },
+    {
+      "id": "term-230",
+      "front": "твердотельный накопитель",
+      "back": "SSD (Solid State Drive)"
+    },
+    {
+      "id": "term-231",
+      "front": "протокол защищённых соединений",
+      "back": "SSL (Secure Sockets Layer)"
+    },
+    {
+      "id": "term-232",
+      "front": "топология \"звезда\"",
+      "back": "star topology"
+    },
+    {
+      "id": "term-233",
+      "front": "устройство хранения данных",
+      "back": "storage device"
+    },
+    {
+      "id": "term-234",
+      "front": "носитель информации",
+      "back": "storage medium"
+    },
+    {
+      "id": "term-235",
+      "front": "потоковое видео",
+      "back": "streaming video"
+    },
+    {
+      "id": "term-236",
+      "front": "абоненты",
+      "back": "subscribers"
+    },
+    {
+      "id": "term-237",
+      "front": "cуперкомпьютер",
+      "back": "supercomputer"
+    },
+    {
+      "id": "term-238",
+      "front": "организующая программа",
+      "back": "supervisor program"
+    },
+    {
+      "id": "term-239",
+      "front": "переключатель, коммутатор",
+      "back": "switch"
+    },
+    {
+      "id": "term-240",
+      "front": "тактовый генератор",
+      "back": "system clock"
+    },
+    {
+      "id": "term-241",
+      "front": "системный блок",
+      "back": "system unit"
+    },
+    {
+      "id": "term-242",
+      "front": "планшет",
+      "back": "tablet"
+    },
+    {
+      "id": "term-243",
+      "front": "операционная система с режимом разделения времени",
+      "back": "timesharing operating systems"
+    },
+    {
+      "id": "term-244",
+      "front": "архивировать",
+      "back": "to archive"
+    },
+    {
+      "id": "term-245",
+      "front": "переходить по подозрительной ссылке",
+      "back": "to click a suspicious link"
+    },
+    {
+      "id": "term-246",
+      "front": "отказать в доступе, отклонить доступ",
+      "back": "to deny access"
+    },
+    {
+      "id": "term-247",
+      "front": "редактировать",
+      "back": "to edit"
+    },
+    {
+      "id": "term-248",
+      "front": "шифровать данные",
+      "back": "to encrypt data"
+    },
+    {
+      "id": "term-249",
+      "front": "стирать (данные)",
+      "back": "to erase/ delete/ remove"
+    },
+    {
+      "id": "term-250",
+      "front": "предотвратить несанкционированный/ неавторизованный доступ",
+      "back": "to prevent an unauthorized access"
+    },
+    {
+      "id": "term-251",
+      "front": "запускать заражённую программу",
+      "back": "to run an infected program"
+    },
+    {
+      "id": "term-252",
+      "front": "распространять вирусы",
+      "back": "to spread/ propagate viruses"
+    },
+    {
+      "id": "term-253",
+      "front": "обновлять антивирусное ПО",
+      "back": "to update antivirus software"
+    },
+    {
+      "id": "term-254",
+      "front": "сенсорный экран",
+      "back": "touch screen"
+    },
+    {
+      "id": "term-255",
+      "front": "сенсорная панель",
+      "back": "touchpad"
+    },
+    {
+      "id": "term-256",
+      "front": "дорожка на CD/жёстком диске",
+      "back": "track"
+    },
+    {
+      "id": "term-257",
+      "front": "приемопередатчик",
+      "back": "transceiver"
+    },
+    {
+      "id": "term-258",
+      "front": "скорость передачи данных",
+      "back": "transfer rate"
+    },
+    {
+      "id": "term-259",
+      "front": "запуск, активация вируса",
+      "back": "trigger"
+    },
+    {
+      "id": "term-260",
+      "front": "Троянский конь",
+      "back": "Trojan"
+    },
+    {
+      "id": "term-261",
+      "front": "витая пара",
+      "back": "twisted-pair cable"
+    },
+    {
+      "id": "term-262",
+      "front": "протокол пользовательских дэйтаграмм",
+      "back": "UDP (User Datagram Protocol)"
+    },
+    {
+      "id": "term-263",
+      "front": "неавторизованный доступ, несанкционированный доступ",
+      "back": "unauthorized access"
+    },
+    {
+      "id": "term-264",
+      "front": "универсальный указатель ресурса",
+      "back": "URL (Uniform Resource Locator)"
+    },
+    {
+      "id": "term-265",
+      "front": "USB порт",
+      "back": "USB (Universal Serial Bus) port"
+    },
+    {
+      "id": "term-266",
+      "front": "флеш-накопитель",
+      "back": "USB-flash drive / memory stick"
+    },
+    {
+      "id": "term-267",
+      "front": "электронные лампы",
+      "back": "vacuum tubes"
+    },
+    {
+      "id": "term-268",
+      "front": "виртуальная клавиатура",
+      "back": "virtual keyboard"
+    },
+    {
+      "id": "term-269",
+      "front": "коммутация виртуальных каналов",
+      "back": "virtual circuit switching"
+    },
+    {
+      "id": "term-270",
+      "front": "энергозависимый",
+      "back": "volatile"
+    },
+    {
+      "id": "term-271",
+      "front": "напряжение",
+      "back": "voltage"
+    },
+    {
+      "id": "term-272",
+      "front": "виртуальная реальность",
+      "back": "VR (Virtual Reality)"
+    },
+    {
+      "id": "term-273",
+      "front": "конструктор веб-сайтов",
+      "back": "website builder"
+    },
+    {
+      "id": "term-274",
+      "front": "искажение информации на вебсайте",
+      "back": "Website defacement"
+    },
+    {
+      "id": "term-275",
+      "front": "вес (веса)",
+      "back": "weight"
+    },
+    {
+      "id": "term-276",
+      "front": "беспроводная локальная сеть",
+      "back": "WLAN (Wireless Local Area Network)"
+    },
+    {
+      "id": "term-277",
+      "front": "текстовый редактор",
+      "back": "word processor"
+    },
+    {
+      "id": "term-278",
+      "front": "червь",
+      "back": "worm"
+    },
+    {
+      "id": "term-279",
+      "front": "кэш с обратной (отложенной) записью",
+      "back": "write-back сache"
+    },
+    {
+      "id": "term-280",
+      "front": "кэш со сквозной записью",
+      "back": "write-through сache"
+    }
+  ],
+  "definitions": [
+    {
+      "id": "def-001",
+      "front": "Abacus",
+      "back": "is an ancient counting tool invented in China around 1300 BC used to perform basic arithmetical operations such as addition, subtraction, multiplication, and division."
+    },
+    {
+      "id": "def-002",
+      "front": "The Analytical Engine",
+      "back": "is a mechanical computer designed in the 1830s by Charles Babbage. It is considered the first machine resembling modern computers because it contained an Arithmetic Logic Unit (ALU), control unit, memory, and an input/output system."
+    },
+    {
+      "id": "def-003",
+      "front": "Arithmetic Logic Unit (ALU)",
+      "back": "is a fundamental component of a computer's processor responsible for performing mathematical calculations and logical operations."
+    },
+    {
+      "id": "def-004",
+      "front": "Integrated Circuit (IC), often referred to as a microchip",
+      "back": "is a miniature electronic circuit consisting of various interconnected components fabricated onto a single semiconductor substance."
+    },
+    {
+      "id": "def-005",
+      "front": "Moore's Law",
+      "back": "is a theory based on a prediction made by Gordon Moore in 1965 stating that computer processing power doubles approximately every two years as manufacturing improves and more transistors are placed on a circuit."
+    },
+    {
+      "id": "def-006",
+      "front": "The Pascaline",
+      "back": "is the first mechanical adding machine, built by Blaise Pascal between 1642 and 1644, capable of performing addition and subtraction. The device was basically a wooden box with a number of gears and wheels."
+    },
+    {
+      "id": "def-007",
+      "front": "Parallel processing",
+      "back": "is a computing method where multiple processors or cores perform several calculations or execute processes simultaneously."
+    },
+    {
+      "id": "def-008",
+      "front": "Semiconductor",
+      "back": "is a material, such as silicon, whose ability to conduct electricity increases as its temperature rises."
+    },
+    {
+      "id": "def-009",
+      "front": "Transistor",
+      "back": "is a semiconductor that controls voltage or current flow in electronic signals acting as a switch. This small electronic component replaced vacuum tubes in second-generation computers, leading to higher speeds and smaller computer sizes."
+    },
+    {
+      "id": "def-010",
+      "front": "Vacuum tube",
+      "back": "is an electronic device that regulates electron movement in a vacuum. It was an early electronic component used in first-generation computers (1940s) to control the flow of electricity."
+    },
+    {
+      "id": "def-011",
+      "front": "The first-generation computers",
+      "back": "are electronic digital computers (1940s) characterized by the use of vacuum tubes, enormous physical size, high electricity consumption, and the ability to solve only one problem at a time."
+    },
+    {
+      "id": "def-012",
+      "front": "The second-generation computers",
+      "back": "are computers (late 1950s-early 1960s) which utilized transistors instead of vacuum tubes. Consequently, these machines were ten times faster, smaller in size, and required less maintenance."
+    },
+    {
+      "id": "def-013",
+      "front": "The third-generation computers",
+      "back": "are computers (1965-1972) built with integrated circuits, enabling speeds of a million calculations per second and significantly lower production and maintenance costs."
+    },
+    {
+      "id": "def-014",
+      "front": "The fourth-generation computers",
+      "back": "are computers (mid-1970s-present) based on thousands of circuits placed on a single microprocessor chip, supporting Graphical User Interfaces (GUI) and network connectivity."
+    },
+    {
+      "id": "def-015",
+      "front": "The fifth-generation computers",
+      "back": "are modern computers based on parallel processing and Artificial Intelligence, designed to simulate human reasoning and respond to natural language input."
+    },
+    {
+      "id": "def-016",
+      "front": "Desktop PC",
+      "back": "is a personal computer designed for use in a single, stationary location, typically consisting of a system unit, monitor, keyboard, and mouse."
+    },
+    {
+      "id": "def-017",
+      "front": "Laptop",
+      "back": "is a portable, lightweight computer with a hinged design, featuring a flat LCD screen, a built-in keyboard with a touchpad, and a battery for mobile use."
+    },
+    {
+      "id": "def-018",
+      "front": "Mainframe",
+      "back": "is a large, powerful computer capable of supporting multiple users and thousands of simultaneous queries; it is often used for large-scale data processing in banks and big corporations."
+    },
+    {
+      "id": "def-019",
+      "front": "Netbook",
+      "back": "is a mobile computer that is typically smaller than a laptop. They were popular for basic web browsing and often had fewer functions than a full-sized laptop."
+    },
+    {
+      "id": "def-020",
+      "front": "Server",
+      "back": "is a central computer connected to a network of \"client\" workstations, designed to store data and provide services with higher processing power and memory than a standard workstation."
+    },
+    {
+      "id": "def-021",
+      "front": "Supercomputer",
+      "back": "is the fastest type of computer, containing tens of thousands of processors for simultaneous execution of data-intensive tasks such as weather forecasting and aerodynamics."
+    },
+    {
+      "id": "def-022",
+      "front": "Tablet PC",
+      "back": "is a highly portable mobile device with a touch screen interface, typically lacking a physical keyboard and using a mobile operating system."
+    },
+    {
+      "id": "def-023",
+      "front": "Touchpad",
+      "back": "is a sensitive pad built into a laptop keyboard that allows the user to move the pointer on the screen by touch, serving as a replacement for a mouse."
+    },
+    {
+      "id": "def-024",
+      "front": "Arithmetic Logic Unit (ALU)",
+      "back": "is the specific part of the CPU that performs actual arithmetic (e.g., addition, subtraction) and logical operations (e.g., AND, OR, NOT)."
+    },
+    {
+      "id": "def-025",
+      "front": "BIOS (Basic Input/Output System)",
+      "back": "is a ROM chip on the motherboard containing firmware used to perform hardware initialization during the booting process."
+    },
+    {
+      "id": "def-026",
+      "front": "Bus",
+      "back": "is an electrical channel that carries signals and allows devices inside the computer to communicate with each other."
+    },
+    {
+      "id": "def-027",
+      "front": "Central Processing Unit (CPU)",
+      "back": "is the \"brain\" of the computer, built into a single chip (microprocessor), responsible for executing program instructions and coordinating all other units."
+    },
+    {
+      "id": "def-028",
+      "front": "Clock speed",
+      "back": "is the measurement of how many cycles a CPU executes per second, typically measured in gigahertz (GHz)."
+    },
+    {
+      "id": "def-029",
+      "front": "Control Unit",
+      "back": "is the component of the CPU that interprets instructions from the user's program and directs the rest of the hardware to execute them."
+    },
+    {
+      "id": "def-030",
+      "front": "Expansion slot",
+      "back": "is a socket on the motherboard that allows users to install expansion cards to add features like sound or network capabilities."
+    },
+    {
+      "id": "def-031",
+      "front": "Hardware",
+      "back": "is any physical, electronic, or mechanical part of a computer system that can be seen or touched."
+    },
+    {
+      "id": "def-032",
+      "front": "Input device",
+      "back": "is a hardware unit that enables the user to enter data into the computer's memory, such as a keyboard, mouse, or scanner."
+    },
+    {
+      "id": "def-033",
+      "front": "Motherboard",
+      "back": "is the main circuit board of a computer that holds the CPU, memory chips, expansion slots, and controllers for peripherals."
+    },
+    {
+      "id": "def-034",
+      "front": "Mouse",
+      "back": "is small input device used to specify the position of the cursor or to make choices from menus."
+    },
+    {
+      "id": "def-035",
+      "front": "Output device",
+      "back": "is any peripheral that allows the user to extract or view the finished results from the system, such as a monitor or printer."
+    },
+    {
+      "id": "def-036",
+      "front": "Peripherals",
+      "back": "are physical units attached to the computer, including input, output, and storage devices."
+    },
+    {
+      "id": "def-037",
+      "front": "Program counter (PC)",
+      "back": "is a CPU register that keeps track of the next instruction to be performed."
+    },
+    {
+      "id": "def-038",
+      "front": "Instruction register (IR)",
+      "back": "is a CPU register that holds the instruction that is being executed now."
+    },
+    {
+      "id": "def-039",
+      "front": "RAM (Random Access Memory)",
+      "back": "is volatile main memory used to temporarily store data and instructions while they are being processed by the CPU; its contents are lost when power is turned off."
+    },
+    {
+      "id": "def-040",
+      "front": "Registers",
+      "back": "are high-speed memory units within the CPU used to store and control data immediately needed for instruction execution."
+    },
+    {
+      "id": "def-041",
+      "front": "ROM (Read Only Memory)",
+      "back": "is non-volatile memory containing permanent instructions and routines for basic CPU operations, such as the BIOS."
+    },
+    {
+      "id": "def-042",
+      "front": "Scanner",
+      "back": "is an input device that converts images, printed text or handwriting into a digital image."
+    },
+    {
+      "id": "def-043",
+      "front": "Speaker",
+      "back": "is a device that provides sound output."
+    },
+    {
+      "id": "def-044",
+      "front": "Storage device",
+      "back": "is a peripheral device used for permanent or long-term storage of data and programs, such as hard drives or flash drives."
+    },
+    {
+      "id": "def-045",
+      "front": "SMT (simultaneous multi-threading technology)",
+      "back": "is a technology that allows two threads to run on a single core, which enables more effective use of CPU resources and improves overall performance."
+    },
+    {
+      "id": "def-046",
+      "front": "Cache hit",
+      "back": "is a situation when the processor finds data in the cache area."
+    },
+    {
+      "id": "def-047",
+      "front": "Cache memory",
+      "back": "is a type of very fast volatile memory that holds a small amount of recently accessed data and acts as a buffer between the main memory and the processor."
+    },
+    {
+      "id": "def-048",
+      "front": "Cache miss",
+      "back": "is a situation when the processor does not find data in the cache area and reads it in the slower RAM."
+    },
+    {
+      "id": "def-049",
+      "front": "RAM",
+      "back": "is a type of volatile memory inside a computer that stores data temporarily and gets erased when the computer is turned off."
+    },
+    {
+      "id": "def-050",
+      "front": "ROM",
+      "back": "is a type of non-volatile memory including BIOS, firmware, bootloaders that store critical instructions to initiate the system."
+    },
+    {
+      "id": "def-051",
+      "front": "Primary memory",
+      "back": "is an internal storage device, such as cache or RAM, which can be directly accessed by the CPU with minimum or no delay."
+    },
+    {
+      "id": "def-052",
+      "front": "Write-back cache",
+      "back": "is a method changing data in the cache area first, while RAM is updated later."
+    },
+    {
+      "id": "def-053",
+      "front": "Write-through cache",
+      "back": "is a method of refreshing data in the cache and main memory simultaneously."
+    },
+    {
+      "id": "def-054",
+      "front": "Access time",
+      "back": "is the amount of time it takes for a storage device to search and locate the data you plan to open, copy, move."
+    },
+    {
+      "id": "def-055",
+      "front": "Capacity",
+      "back": "is the maximum amount of data a storage device can contain."
+    },
+    {
+      "id": "def-056",
+      "front": "CD-R",
+      "back": "is a type of CD which is released blank and can be recorded on once only."
+    },
+    {
+      "id": "def-057",
+      "front": "CD-ROM",
+      "back": "is a type of CD which comes pre-recorded and doesn't allow to change data stored on it."
+    },
+    {
+      "id": "def-058",
+      "front": "CD-RW",
+      "back": "is a type of CD whose data can be written, read, erased, and rewritten."
+    },
+    {
+      "id": "def-059",
+      "front": "Flash memory",
+      "back": "is a type of non-volatile memory which works by using electronic circuits to store and retrieve data."
+    },
+    {
+      "id": "def-060",
+      "front": "Floppy disk",
+      "back": "is an outdated storage device of low capacity made of flexible plastic material upon which data is stored on magnetic tracks."
+    },
+    {
+      "id": "def-061",
+      "front": "Magnetic storage",
+      "back": "is a type of storage in which data is written by magnetizing particles on a disk or tape."
+    },
+    {
+      "id": "def-062",
+      "front": "NOR flash",
+      "back": "is a type of flash memory that provides fast access to small amounts of data used in bootloaders and firmware."
+    },
+    {
+      "id": "def-063",
+      "front": "NAND flash",
+      "back": "is a type of flash memory that provides slow access to large amounts of data used in SSDs and USB flash drives."
+    },
+    {
+      "id": "def-064",
+      "front": "Optical storage",
+      "back": "is a type of storage is which data is written as a series of reflective marks and read with a laser."
+    },
+    {
+      "id": "def-065",
+      "front": "Read/write head",
+      "back": "is a part of an HDD which reads and writes data by magnetizing and demagnetizing fields on spinning platters."
+    },
+    {
+      "id": "def-066",
+      "front": "Transfer rate",
+      "back": "is the average speed at which data can be transmitted from one device to another, often measured in megabytes per second."
+    },
+    {
+      "id": "def-067",
+      "front": "CLI",
+      "back": "is the way to interact with a computer system through typing various commands in the form of lines of text."
+    },
+    {
+      "id": "def-068",
+      "front": "Compatible",
+      "back": "means being able to work with another device or program."
+    },
+    {
+      "id": "def-069",
+      "front": "Device driver",
+      "back": "is a type of software that controls specific hardware of the computer system."
+    },
+    {
+      "id": "def-070",
+      "front": "Firmware",
+      "back": "permanent software or set of instructions stored in ROM of the computer system."
+    },
+    {
+      "id": "def-071",
+      "front": "GUI",
+      "back": "is a user-friendly interface based on graphics; it uses a WIMP environment."
+    },
+    {
+      "id": "def-072",
+      "front": "Operating system",
+      "back": "is a set of programs that manage the computer's hardware resources, establish a user interface, and provide the environment for application programs to run."
+    },
+    {
+      "id": "def-073",
+      "front": "Open-source software",
+      "back": "is a type of computer software whose copyright holder grants users the rights to use, study, change, and distribute the software to anyone and for any purpose."
+    },
+    {
+      "id": "def-074",
+      "front": "Proprietary software",
+      "back": "is non-free software whose users are not allowed to share, modify it, and distribute the modifications."
+    },
+    {
+      "id": "def-075",
+      "front": "Spreadsheet",
+      "back": "is a computer application for organization, analysis and storage of data in a tabular form."
+    },
+    {
+      "id": "def-076",
+      "front": "Word processor",
+      "back": "is a computer application used to compose and edit texts."
+    },
+    {
+      "id": "def-077",
+      "front": "Preemptive multitasking",
+      "back": "is a type of multitasking where the operating system can initiate a context switch to satisfy the scheduling policy's priority, thus preempting the active task."
+    },
+    {
+      "id": "def-078",
+      "front": "Cooperative multitasking",
+      "back": "is a computer multitasking technique in which the operating system never initiates a context switch from a running process to another process."
+    },
+    {
+      "id": "def-079",
+      "front": "Topology",
+      "back": "is the configuration of the elements (nodes) of a network."
+    },
+    {
+      "id": "def-080",
+      "front": "Local area network (LAN)",
+      "back": "is a collection of devices connected together in one physical location, such as a building, office, or home."
+    },
+    {
+      "id": "def-081",
+      "front": "Metropolitan Area Network (MAN)",
+      "back": "is a high-speed network that interconnects multiple LANs (local area networks) within a specific geographic area, such as a city, large campus, or municipality."
+    },
+    {
+      "id": "def-082",
+      "front": "Wide Area Network (WAN)",
+      "back": "is a type of computer network that connects computers and other devices over a large geographical area (a country or a continent)."
+    },
+    {
+      "id": "def-083",
+      "front": "Network hub",
+      "back": "is a node that broadcasts data to every computer or Ethernet-based device connected to it without restriction."
+    },
+    {
+      "id": "def-084",
+      "front": "Network switch",
+      "back": "is identical to a network hub, but unlike a hub, a switch forwards data to the specific device only based on its MAC address."
+    },
+    {
+      "id": "def-085",
+      "front": "Bus topology",
+      "back": "is a network setup where all nodes (computers, servers, printers) connect directly to a single, central cable, known as the backbone or bus."
+    },
+    {
+      "id": "def-086",
+      "front": "Peer-to-peer network",
+      "back": "is a network architecture in which all the computers have the same capabilities, i.e. share files and peripherals, without requiring a separate server computer."
+    },
+    {
+      "id": "def-087",
+      "front": "Client-server network",
+      "back": "is a computing model in which multiple clients connect to a central server to access resources, such as files, applications, and data."
+    },
+    {
+      "id": "def-088",
+      "front": "Ring topology",
+      "back": "is a LAN topology, in which all devices are interconnected in a continuous loop."
+    },
+    {
+      "id": "def-089",
+      "front": "Tree topology",
+      "back": "is a type of network setup that combines elements from both star and bus topologies to create a hierarchical structure."
+    },
+    {
+      "id": "def-090",
+      "front": "Mesh topology",
+      "back": "is a network configuration where every device is interconnected with every other device, providing multiple routes for data to travel."
+    },
+    {
+      "id": "def-091",
+      "front": "Hybrid topology",
+      "back": "is a network structure that combines two or more different types of topologies into a single system."
+    },
+    {
+      "id": "def-092",
+      "front": "Star topology",
+      "back": "is a LAN topology, in which all data flows through a central hub, a common connection point for the devices on the network."
+    },
+    {
+      "id": "def-093",
+      "front": "Ad hoc topology",
+      "back": "is a wireless peer-to-peer network that does not rely on the existing infrastructure."
+    },
+    {
+      "id": "def-094",
+      "front": "Bridge",
+      "back": "is a hardware component connecting networks that use the same protocol."
+    },
+    {
+      "id": "def-095",
+      "front": "Router",
+      "back": "is a networking device that can send data packets from one network to another."
+    },
+    {
+      "id": "def-096",
+      "front": "Gateway",
+      "back": "is a device or software used to enable communication between two networks that may be using different protocols."
+    },
+    {
+      "id": "def-097",
+      "front": "Computer network",
+      "back": "is a group of computers that use a set of common communication protocols over digital interconnections for the purpose of sharing resources located on or provided by the network nodes."
+    },
+    {
+      "id": "def-098",
+      "front": "Latency",
+      "back": "is the time delay between a user's action (request) and the system's response, typically measured in milliseconds (ms)."
+    },
+    {
+      "id": "def-099",
+      "front": "Modem (modulator-demodulator)",
+      "back": "is a computer hardware device that converts data from a digital format into a format suitable for an analog transmission medium such as telephone or radio."
+    },
+    {
+      "id": "def-100",
+      "front": "Wired networks",
+      "back": "are communication systems that connect devices (computers, printers, servers) using physical cables, such as Ethernet (twisted pair), fiber optics, or coaxial cables, to a central router or switch."
+    },
+    {
+      "id": "def-101",
+      "front": "Wireless network",
+      "back": "is a computer network that uses wireless data connections between network nodes."
+    },
+    {
+      "id": "def-102",
+      "front": "Wireless LAN (WLAN)",
+      "back": "is a wireless computer network that forms a local area network by linking devices over Wi-Fi radio signals."
+    },
+    {
+      "id": "def-103",
+      "front": "Backbone network",
+      "back": "is a high-capacity communications network that serves as the principal data path interconnecting multiple subnetworks."
+    },
+    {
+      "id": "def-104",
+      "front": "The OSI (Open Systems Interconnection) model",
+      "back": "is a set of rules that explains how different computer systems communicate over a network."
+    },
+    {
+      "id": "def-105",
+      "front": "The application layer",
+      "back": "is the layer that serves as the interface between the end-user applications and the underlying network services."
+    },
+    {
+      "id": "def-106",
+      "front": "The presentation layer",
+      "back": "is the layer that acts as a translator and negotiator, ensuring that data from the application layer (Layer 7) can be understood by the receiving system."
+    },
+    {
+      "id": "def-107",
+      "front": "The session layer of the OSI model",
+      "back": "is the layer that manages the establishment, maintenance, and termination of connections (sessions) between applications on different devices."
+    },
+    {
+      "id": "def-108",
+      "front": "The transport layer of the OSI model",
+      "back": "is the layer that ensures reliable, ordered, and error-checked delivery of data between applications on different network hosts."
+    },
+    {
+      "id": "def-109",
+      "front": "The network layer",
+      "back": "is the layer that handles routing, forwarding, and logical addressing (IP addresses) to send data packets between different networks or devices."
+    },
+    {
+      "id": "def-110",
+      "front": "The data link layer",
+      "back": "is the OSI model layer responsible for node-to-node data transfer on a local network segment, ensuring reliable, error-free transmission between directly connected devices."
+    },
+    {
+      "id": "def-111",
+      "front": "The physical layer",
+      "back": "is the lowest layer of the OSI model and it is responsible for transmitting raw bits of data from one node to the other over physical cable or wireless connection."
+    },
+    {
+      "id": "def-112",
+      "front": "Media Access Control (MAC) address",
+      "back": "is a 12-digit hexadecimal number that uniquely identifies every device connected to a network."
+    },
+    {
+      "id": "def-113",
+      "front": "Internet Protocol (IP) address",
+      "back": "is the unique identifying number assigned to every device connected to the internet."
+    },
+    {
+      "id": "def-114",
+      "front": "Bluetooth",
+      "back": "is a wireless technology that allows mobile devices and other peripheral devices to communicate over short distances."
+    },
+    {
+      "id": "def-115",
+      "front": "Coaxial cable",
+      "back": "is a type of cable that consists of four main components: inner conductor, insulation, metal shield, and jacket."
+    },
+    {
+      "id": "def-116",
+      "front": "Virtual circuit switching",
+      "back": "is an approach in which a path is built between the source and the destination points through which all packets are routed."
+    },
+    {
+      "id": "def-117",
+      "front": "Datagram switching",
+      "back": "is a packet switching method that treats each packet, or datagram, as a separate entity. Each packet is routed via the network on its own though different paths, and then the packets are reassembled at the destination point."
+    },
+    {
+      "id": "def-118",
+      "front": "Digital Subscriber Line",
+      "back": "is a broadband communication technology designed for the use on telephone lines; it allows a single phone connection to be used for both Internet service and voice calls at the same time."
+    },
+    {
+      "id": "def-119",
+      "front": "Fiber-optic technology",
+      "back": "is the fastest wired way to access the Internet transmitting information as pulses of light through strands of fiber made of glass or plastic over long distances."
+    },
+    {
+      "id": "def-120",
+      "front": "Bandwidth",
+      "back": "is the measure of how much information can pass through a data connection in a given amount of time, measured in bits per second."
+    },
+    {
+      "id": "def-121",
+      "front": "Cellular network",
+      "back": "is a radio-based communication network distributed over land areas called cells, each served by a fixed-location transceiver, known as a cell tower."
+    },
+    {
+      "id": "def-122",
+      "front": "Dial-up connection",
+      "back": "is the least expensive but also the slowest way to access the Internet which uses a standard phone line and analog modem. This technology pre-existed the DSL connection and used one and the same frequency to transmit voice and data signal."
+    },
+    {
+      "id": "def-123",
+      "front": "The TCP/IP stack",
+      "back": "is a four-layer protocol model used on the Internet to govern how data is transmitted between computers. It is named after the two main protocols TCP and IP and is widely used as a framework to model communication in a network."
+    },
+    {
+      "id": "def-124",
+      "front": "The World Wide Web (WWW)",
+      "back": "is an information system accessible through the Internet where documents and other web resources are identified by a Uniform Resource Locator (URL)."
+    },
+    {
+      "id": "def-125",
+      "front": "Ranking",
+      "back": "is the process of ordering the search results from most relevant to least relevant."
+    },
+    {
+      "id": "def-126",
+      "front": "Web crawler",
+      "back": "is a special program also known as a spider that regularly browses the web to discover new content. It works by following hyperlinks from page to page and storing copies of the pages in a search engine's index."
+    },
+    {
+      "id": "def-127",
+      "front": "Human-powered directories",
+      "back": "are systems that depend on human editors for their listings. A directory gets its information from submissions, which include a short description to the directory for the entire site, or from editors who write one for sites they review. When a user query is entered, the system looks for matches only in the descriptions submitted."
+    },
+    {
+      "id": "def-128",
+      "front": "Meta-search engine",
+      "back": "is a type of search engine which does not have a database of indexed pages of its own. Instead, it sends users' queries to several other search engines and compiles top results from each into one overall list."
+    },
+    {
+      "id": "def-129",
+      "front": "Search bar",
+      "back": "is a field on the screen that allows users to enter keywords or phrases to find specific content."
+    },
+    {
+      "id": "def-130",
+      "front": "Web browser",
+      "back": "is software that serves as a gateway to the World Wide Web. It identifies individual URLs and displays the corresponding page on the user's device."
+    },
+    {
+      "id": "def-131",
+      "front": "Search engine",
+      "back": "is software system that scans, indexes, and retrieves web content to help users find information online."
+    },
+    {
+      "id": "def-132",
+      "front": "Hyperlink",
+      "back": "is a highlighted word or image in a hypertext document that takes a user to another location when he/she clicks on it."
+    },
+    {
+      "id": "def-133",
+      "front": "Backend development",
+      "back": "is a field of web development that is associated with the part of the site connected to the server."
+    },
+    {
+      "id": "def-134",
+      "front": "Frontend development",
+      "back": "is a field of web development that focuses on the visible part of the site."
+    },
+    {
+      "id": "def-135",
+      "front": "HTML",
+      "back": "is a code used to describe the structure of information on a webpage telling the web browser how to display its content."
+    },
+    {
+      "id": "def-136",
+      "front": "Hyperlink",
+      "back": "is a text, image or button that takes you to other web pages when you click on it."
+    },
+    {
+      "id": "def-137",
+      "front": "Java Script",
+      "back": "is a programming language used by web developers to create dynamically updating content, use animations, pop-up menus, clickable buttons, etc."
+    },
+    {
+      "id": "def-138",
+      "front": "CSS",
+      "back": "is a mechanism for adding style (e.g. fonts, colors, spacing) to web documents."
+    },
+    {
+      "id": "def-139",
+      "front": "SEO",
+      "back": "is a set of improvements that increases visibility of a site and helps it rank higher on the results page."
+    },
+    {
+      "id": "def-140",
+      "front": "Website builder",
+      "back": "is a platform that can be used to create a website without having to code."
+    },
+    {
+      "id": "def-141",
+      "front": "Assembly language",
+      "back": "is a low-level programming language that uses symbolic instructions rather than raw binary coding to communicate directly with a computer's hardware,"
+    },
+    {
+      "id": "def-142",
+      "front": "Object-oriented programming (OOP)",
+      "back": "is a programming paradigm in computer science that relies on the concept of classes and objects. Objects are defined as software entities that encapsulate data and functions."
+    },
+    {
+      "id": "def-143",
+      "front": "Compiler",
+      "back": "is a special program that converts a source program (written in a high-level language) into object code in one go."
+    },
+    {
+      "id": "def-144",
+      "front": "Interpreter",
+      "back": "is a special program that translates the source code line by line, as the program is running."
+    },
+    {
+      "id": "def-145",
+      "front": "Inheritance",
+      "back": "is the ability of one class to use properties and behavior of another class."
+    },
+    {
+      "id": "def-146",
+      "front": "Polymorphism",
+      "back": "is a programming language's ability to process objects differently depending on their data type or class."
+    },
+    {
+      "id": "def-147",
+      "front": "Encapsulation",
+      "back": "is a fundamental concept that combines data (attributes) and methods (functions) into a single unit."
+    },
+    {
+      "id": "def-148",
+      "front": "Source code",
+      "back": "is a set of instructions typically written in a high-level programming language that defines how a program or application should function."
+    },
+    {
+      "id": "def-149",
+      "front": "Machine code",
+      "back": "is a code made of just two numbers (0 and 1)."
+    },
+    {
+      "id": "def-150",
+      "front": "Debugging",
+      "back": "is the technique of detecting and correcting errors which may occur in programs."
+    },
+    {
+      "id": "def-151",
+      "front": "Spyware",
+      "back": "is malicious software designed to enter a computer device, gather data about a person or organization and forward it to a third party without a user's consent."
+    },
+    {
+      "id": "def-152",
+      "front": "Adware",
+      "back": "is a form of financially supported malware that usually presents itself as unwanted commercials."
+    },
+    {
+      "id": "def-153",
+      "front": "Keylogger",
+      "back": "is a type of spyware used to monitor and record each keystroke on a specific keyboard. The information is gathered and sent to the attacker. This malware is most often used for stealing passwords."
+    },
+    {
+      "id": "def-154",
+      "front": "Worm",
+      "back": "is a standalone malicious computer program that replicates itself to infect other computers. It is able to spread across the network directly without attaching itself to a host file."
+    },
+    {
+      "id": "def-155",
+      "front": "Hijacking",
+      "back": "is a type of cybercrime which involves redirecting anyone trying to visit a certain site elsewhere."
+    },
+    {
+      "id": "def-156",
+      "front": "DDoS attack",
+      "back": "is an attack where hackers overload networks and servers with traffic so that computer systems are unable to keep up with legitimate needs."
+    },
+    {
+      "id": "def-157",
+      "front": "Trojan",
+      "back": "is a type of malware that misleads users of its true intent by pretending to be a useful program."
+    },
+    {
+      "id": "def-158",
+      "front": "Phishing",
+      "back": "is a type of cybercrime where the attacker sends a fake message designed to trick a person into revealing sensitive information to the attacker."
+    },
+    {
+      "id": "def-159",
+      "front": "Ransomware",
+      "back": "is a type of malware that threatens to publish the victim's data, encrypts the victim's data or blocks access to the device unless a payment is made."
+    },
+    {
+      "id": "def-160",
+      "front": "Miner",
+      "back": "is a virus which uses your computer power to earn cryptocurrency for others."
+    },
+    {
+      "id": "def-161",
+      "front": "Piracy",
+      "back": "is unauthorized copying of a program for sale or distributing to other users."
+    },
+    {
+      "id": "def-162",
+      "front": "Backdoor",
+      "back": "is a technique that involves leaving, within a completed program, an illicit program that allows unauthorized and unknown entry."
+    },
+    {
+      "id": "def-163",
+      "front": "Defacement",
+      "back": "is a cybercrime which involves changing the information shown on another person's website."
+    },
+    {
+      "id": "def-164",
+      "front": "Salami shaving",
+      "back": "is a computer crime in which a program is altered so that it transfers a small amount of money from a large number of accounts to make a large profit."
+    },
+    {
+      "id": "def-165",
+      "front": "Misdirection routine",
+      "back": "is the component that allows a virus to hide itself."
+    },
+    {
+      "id": "def-166",
+      "front": "Trigger",
+      "back": "is the component of a virus that activates payload."
+    },
+    {
+      "id": "def-167",
+      "front": "Payload",
+      "back": "is the component of a virus that does the damage to the computer system."
+    },
+    {
+      "id": "def-168",
+      "front": "Reproduction routine",
+      "back": "is the component that allows the virus to self-replicate and infect other programs."
+    },
+    {
+      "id": "def-169",
+      "front": "Firewall",
+      "back": "is a combination of software and hardware used to protect private networks by filtering incoming data traffic."
+    },
+    {
+      "id": "def-170",
+      "front": "Signature",
+      "back": "is a distinguishing feature that every computer virus contains."
+    },
+    {
+      "id": "def-171",
+      "front": "Heuristic scanning",
+      "back": "is a type of malware detection technique which allows identifying potentially malicious software without having an exact match in signature database."
+    },
+    {
+      "id": "def-172",
+      "front": "Cybersecurity",
+      "back": "is the practice employed to protect and secure computers, servers, networks, mobile devices, electronic systems, and data from being attacked."
+    },
+    {
+      "id": "def-173",
+      "front": "Multi-factor authentication (MFA)",
+      "back": "is a user verification technology that requires more than one type of user validation."
+    },
+    {
+      "id": "def-174",
+      "front": "Encryption",
+      "back": "is a way of encoding data so that only authorized parties can understand the information."
+    },
+    {
+      "id": "def-175",
+      "front": "Brute force",
+      "back": "is a cybersecurity threat where a hacker attempts to access a system by systematically testing different passwords."
+    },
+    {
+      "id": "def-176",
+      "front": "Password",
+      "back": "is secret data, typically a string of characters, usually used to confirm a user's identity."
+    },
+    {
+      "id": "def-177",
+      "front": "Cryptanalysis",
+      "back": "is a method of spotting a weakness in the cipher aiming to decrypt encoded data."
+    },
+    {
+      "id": "def-178",
+      "front": "Secure Sockets Layer (SSL)",
+      "back": "is an Internet security protocol that encrypts data to ensure secure communication between devices over a network."
+    },
+    {
+      "id": "def-179",
+      "front": "Web application firewall (WAF)",
+      "back": "helps protect web applications by filtering and monitoring HTTP traffic between a web application and the Internet."
+    },
+    {
+      "id": "def-180",
+      "front": "Ciphertext",
+      "back": "is encrypted text transformed from plaintext using an encryption algorithm."
+    },
+    {
+      "id": "def-181",
+      "front": "Cryptography",
+      "back": "is the process of hiding or coding information so that only the person a message was intended for can read it."
+    },
+    {
+      "id": "def-182",
+      "front": "Cryptographic key",
+      "back": "is a randomized string of bits used to encrypt and/or decrypt data"
+    },
+    {
+      "id": "def-183",
+      "front": "Symmetric encryption",
+      "back": "is the process of using a single key to both encrypt and decrypt data."
+    },
+    {
+      "id": "def-184",
+      "front": "Asymmetric encryption (or public-key cryptography)",
+      "back": "is a security method that uses a mathematically linked pair of keys-a public key for encryption and a private key for decryption- to protect data."
+    },
+    {
+      "id": "def-185",
+      "front": "Antivirus software",
+      "back": "is designed to detect, present and take action to disarm or remove malicious software from your computer such as viruses, worms and Trojan horses."
+    },
+    {
+      "id": "def-186",
+      "front": "Packet filtering firewall",
+      "back": "is a network security device that filters incoming and outgoing network packets based on a predefined set of rules."
+    },
+    {
+      "id": "def-187",
+      "front": "Backup program",
+      "back": "is a program that stores a copy of data on a storage device to keep it safe."
+    },
+    {
+      "id": "def-188",
+      "front": "Incremental backup",
+      "back": "is a backup type that only copies data that has been changed or created since the previous full, differential or incremental backup."
+    },
+    {
+      "id": "def-189",
+      "front": "Differential backup",
+      "back": "is a data protection method that copies all files changed since the last full backup."
+    },
+    {
+      "id": "def-190",
+      "front": "Artificial Intelligence (AI)",
+      "back": "is a technology that simulates human intelligence in computer systems. It enables a computer or a robot controlled by a computer to do tasks that are usually done by humans."
+    },
+    {
+      "id": "def-191",
+      "front": "The Internet of Things (IoT)",
+      "back": "is a system of interrelated computing devices, mechanical, and digital machines provided with the ability to share data in order to automate processes."
+    },
+    {
+      "id": "def-192",
+      "front": "Virtual Reality (VR)",
+      "back": "is a computer-generated space in which the user interacts with artificial objects through 3-D computer simulation."
+    },
+    {
+      "id": "def-193",
+      "front": "Neural Networks (NN)",
+      "back": "is computing systems with interconnected nodes that resemble neurons in the human brain. Using algorithms, they can recognize hidden patterns and correlations in raw data, classify it, and continuously learn and improve."
+    },
+    {
+      "id": "def-194",
+      "front": "Augmented Reality (AR)",
+      "back": "is an enhanced version of the real physical world, which integrates digital information with the existing environment in real time."
+    },
+    {
+      "id": "def-195",
+      "front": "Backpropagation",
+      "back": "is an algorithm that is designed to test for errors working back from output nodes to input nodes."
+    },
+    {
+      "id": "def-196",
+      "front": "Unique Identifier (UID)",
+      "back": "is a numeric or alphanumeric string assigned to a specific entity-such as a user, device, file, or database record-to distinguish it from others within a system."
+    },
+    {
+      "id": "def-197",
+      "front": "Machine Learning (ML)",
+      "back": "is a subset of AI that enables software to learn from data, identifying patterns to make predictions or decisions without being explicitly programmed."
+    },
+    {
+      "id": "def-198",
+      "front": "Artificial neurons",
+      "back": "are units arranged in a series of layers, each of which connects to the layers on either side."
+    },
+    {
+      "id": "def-199",
+      "front": "Input units",
+      "back": "are the layers of artificial neurons designed to receive various forms of information from the outside world that the network will attempt to learn about, recognize, or otherwise process."
+    },
+    {
+      "id": "def-200",
+      "front": "Output units",
+      "back": "are the layers of artificial neurons designed to signal how the network responds to the information it has learned."
+    },
+    {
+      "id": "def-201",
+      "front": "Hidden units",
+      "back": "are the layers of artificial neurons between the input and output layers that process information and form the core computational engine, or \"artificial brain,\" of a neural network."
+    },
+    {
+      "id": "def-202",
+      "front": "Weight",
+      "back": "is a numerical value representing the strength of the connection between two units (neurons) in a neural network, where a positive value indicates excitation and a negative value indicates inhibition."
+    },
+    {
+      "id": "def-203",
+      "front": "Human-level artificial intelligence (HLAI)",
+      "back": "is a term used to describe artificial intelligence systems that have human-like abilities in terms of reasoning, learning, perception, and problem solving."
+    },
+    {
+      "id": "def-204",
+      "front": "Turing Test",
+      "back": "is a test of whether a computer can show intelligent behavior like that of a human, done by seeing if a tester can tell whether the answers to a set of questions come from the computer or from a person."
+    }
+  ]
+};
+
+  </script>
+  <script>
+
+const DATA = window.TRAINER_DATA || { terms: [], definitions: [] };
+
+const CONFIG = {
+  terms: {
+    name: "Перевод",
+    frontTag: "RU - лицевая сторона",
+    backTag: "EN - перевод",
+    flipText: "Показать перевод",
+    flipBackText: "Показать русский",
+    frontHint: "Нажми на карточку, чтобы увидеть английский перевод."
+  },
+  definitions: {
+    name: "Определения",
+    frontTag: "Термин",
+    backTag: "Definition",
+    flipText: "Показать определение",
+    flipBackText: "Показать термин",
+    frontHint: "Нажми на карточку, чтобы увидеть определение."
+  }
+};
+
+const els = {
+  card: document.getElementById("card"),
+  frontText: document.getElementById("frontText"),
+  backText: document.getElementById("backText"),
+  frontTag: document.getElementById("frontTag"),
+  backTag: document.getElementById("backTag"),
+  frontHint: document.getElementById("frontHint"),
+  progressText: document.getElementById("progressText"),
+  repeatText: document.getElementById("repeatText"),
+  roundText: document.getElementById("roundText"),
+  flipBtn: document.getElementById("flipBtn"),
+  unknownBtn: document.getElementById("unknownBtn"),
+  knownBtn: document.getElementById("knownBtn"),
+  mixBtn: document.getElementById("mixBtn"),
+  resetBtn: document.getElementById("resetBtn"),
+  searchInput: document.getElementById("searchInput"),
+  clearBtn: document.getElementById("clearBtn"),
+  deck: document.getElementById("deck"),
+  toast: document.getElementById("toast"),
+  tabs: Array.from(document.querySelectorAll(".tab-btn"))
+};
+
+let activeMode = "terms";
+let isAnimating = false;
+let toastTimer = null;
+let pointerStart = null;
+
+const state = {
+  terms: createState(DATA.terms),
+  definitions: createState(DATA.definitions)
+};
+
+function createState(cards) {
+  const normalized = cards.map((card, index) => ({ ...card, originalIndex: index }));
+  return {
+    all: normalized,
+    filtered: normalized,
+    cycle: shuffle(normalized),
+    unknown: [],
+    index: 0,
+    round: 1
+  };
+}
+
+function shuffle(items) {
+  const array = [...items];
+  for (let i = array.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}
+
+function currentState() {
+  return state[activeMode];
+}
+
+function currentConfig() {
+  return CONFIG[activeMode];
+}
+
+function currentCard() {
+  const s = currentState();
+  return s.cycle[s.index] || null;
+}
+
+function showToast(message) {
+  clearTimeout(toastTimer);
+  els.toast.textContent = message;
+  els.toast.classList.add("is-visible");
+  toastTimer = setTimeout(() => els.toast.classList.remove("is-visible"), 1600);
+}
+
+function setFlipped(isFlipped) {
+  const config = currentConfig();
+  els.card.classList.toggle("is-flipped", isFlipped);
+  els.flipBtn.textContent = isFlipped ? config.flipBackText : config.flipText;
+}
+
+function toggleFlip() {
+  if (isAnimating || !currentCard()) return;
+  setFlipped(!els.card.classList.contains("is-flipped"));
+}
+
+function render() {
+  const s = currentState();
+  const config = currentConfig();
+  const item = currentCard();
+
+  els.frontTag.textContent = config.frontTag;
+  els.backTag.textContent = config.backTag;
+  els.frontHint.textContent = config.frontHint;
+  els.roundText.textContent = String(s.round);
+  els.repeatText.textContent = String(s.unknown.length);
+
+  if (!item) {
+    els.frontText.textContent = "Ничего не найдено";
+    els.backText.textContent = "Очисти фильтр или введи другой запрос.";
+    els.progressText.textContent = "0 / 0";
+    setFlipped(false);
+    return;
+  }
+
+  els.frontText.textContent = item.front;
+  els.backText.textContent = item.back;
+  els.progressText.textContent = `${s.index + 1} / ${s.cycle.length}`;
+  setFlipped(false);
+}
+
+function finishCycleIfNeeded() {
+  const s = currentState();
+
+  if (s.index < s.cycle.length) return;
+
+  if (s.unknown.length > 0) {
+    const count = s.unknown.length;
+    s.cycle = shuffle(s.unknown);
+    s.unknown = [];
+    s.index = 0;
+    s.round += 1;
+    showToast(`Новый круг: осталось повторить ${count}`);
+    return;
+  }
+
+  s.cycle = shuffle(s.filtered);
+  s.unknown = [];
+  s.index = 0;
+  s.round = 1;
+  showToast("Все карточки отмечены как знакомые. Начинаем заново.");
+}
+
+function answer(knows, direction) {
+  const s = currentState();
+  const item = currentCard();
+  if (isAnimating || !item) return;
+
+  isAnimating = true;
+  setFlipped(false);
+
+  if (!knows) {
+    s.unknown.push(item);
+  }
+
+  const animationClass = direction === "left" ? "swipe-left" : "swipe-right";
+  els.card.classList.remove("swipe-left", "swipe-right");
+  els.card.classList.add(animationClass);
+
+  setTimeout(() => {
+    s.index += 1;
+    finishCycleIfNeeded();
+    render();
+  }, 160);
+
+  setTimeout(() => {
+    els.card.classList.remove(animationClass);
+    isAnimating = false;
+  }, 360);
+}
+
+function mixCurrentCycle() {
+  const s = currentState();
+  if (s.cycle.length === 0) return;
+
+  const remaining = s.cycle.slice(s.index);
+  s.cycle = shuffle(remaining.length ? remaining : s.filtered);
+  s.index = 0;
+  s.unknown = [];
+
+  els.mixBtn.animate([
+    { transform: "rotate(0deg) scale(1)" },
+    { transform: "rotate(8deg) scale(1.04)" },
+    { transform: "rotate(-8deg) scale(1.04)" },
+    { transform: "rotate(0deg) scale(1)" }
+  ], { duration: 360, easing: "ease" });
+
+  showToast("Колода перемешана");
+  render();
+}
+
+function resetMode(mode = activeMode) {
+  const query = els.searchInput.value.trim().toLowerCase();
+  const s = state[mode];
+  s.filtered = query
+    ? s.all.filter(card => `${card.front} ${card.back}`.toLowerCase().includes(query))
+    : s.all;
+  s.cycle = shuffle(s.filtered);
+  s.unknown = [];
+  s.index = 0;
+  s.round = 1;
+  render();
+}
+
+function switchMode(mode) {
+  if (!CONFIG[mode]) return;
+  activeMode = mode;
+  els.tabs.forEach(tab => {
+    const isActive = tab.dataset.mode === mode;
+    tab.classList.toggle("is-active", isActive);
+    tab.setAttribute("aria-selected", String(isActive));
+  });
+  els.searchInput.value = "";
+  state[mode] = createState(DATA[mode]);
+  render();
+}
+
+function handlePointerDown(event) {
+  if (isAnimating || !currentCard()) return;
+  pointerStart = { x: event.clientX, y: event.clientY };
+  els.card.classList.add("is-dragging");
+}
+
+function handlePointerMove(event) {
+  if (!pointerStart || isAnimating || els.card.classList.contains("is-flipped")) return;
+  const dx = event.clientX - pointerStart.x;
+  const dy = event.clientY - pointerStart.y;
+  if (Math.abs(dx) < Math.abs(dy)) return;
+  const rotate = Math.max(-10, Math.min(10, dx / 18));
+  els.card.style.transform = `translateX(${dx * 0.22}px) rotate(${rotate}deg)`;
+}
+
+function handlePointerUp(event) {
+  if (!pointerStart) return;
+
+  const dx = event.clientX - pointerStart.x;
+  const dy = event.clientY - pointerStart.y;
+
+  pointerStart = null;
+  els.card.classList.remove("is-dragging");
+  els.card.style.transform = "";
+
+  if (Math.abs(dx) > 58 && Math.abs(dx) > Math.abs(dy)) {
+    if (dx < 0) {
+      answer(false, "left");
+    } else {
+      answer(true, "right");
+    }
+  }
+}
+
+function bindEvents() {
+  els.card.addEventListener("click", (event) => {
+    if (Math.abs((event.clientX || 0) - (pointerStart?.x || 0)) > 8) return;
+    toggleFlip();
+  });
+
+  els.flipBtn.addEventListener("click", toggleFlip);
+  els.unknownBtn.addEventListener("click", () => answer(false, "left"));
+  els.knownBtn.addEventListener("click", () => answer(true, "right"));
+  els.mixBtn.addEventListener("click", mixCurrentCycle);
+  els.resetBtn.addEventListener("click", () => {
+    resetMode();
+    showToast("Тренировка сброшена");
+  });
+
+  els.clearBtn.addEventListener("click", () => {
+    els.searchInput.value = "";
+    resetMode();
+    els.searchInput.focus();
+  });
+
+  els.searchInput.addEventListener("input", () => resetMode());
+
+  els.tabs.forEach(tab => {
+    tab.addEventListener("click", () => switchMode(tab.dataset.mode));
+  });
+
+  els.deck.addEventListener("pointerdown", handlePointerDown);
+  window.addEventListener("pointermove", handlePointerMove);
+  window.addEventListener("pointerup", handlePointerUp);
+  window.addEventListener("pointercancel", () => {
+    pointerStart = null;
+    els.card.classList.remove("is-dragging");
+    els.card.style.transform = "";
+  });
+
+  window.addEventListener("keydown", (event) => {
+    if (document.activeElement === els.searchInput) return;
+
+    if (event.key === " ") {
+      event.preventDefault();
+      toggleFlip();
+    }
+
+    if (event.key === "ArrowLeft") answer(false, "left");
+    if (event.key === "ArrowRight") answer(true, "right");
+    if (event.key.toLowerCase() === "m") mixCurrentCycle();
+  });
+}
+
+bindEvents();
+render();
+
+  </script>
+</body>
+</html>
