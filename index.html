@@ -227,11 +227,10 @@ button { border: none; cursor: pointer; }
   padding: 0;
   background: transparent;
   transform-style: preserve-3d;
-  transition: transform 0.48s cubic-bezier(.2,.85,.28,1.15), opacity 0.28s ease;
+  transition: transform 0.36s cubic-bezier(.2,.85,.28,1.15), opacity 0.28s ease, box-shadow 0.2s ease;
   will-change: transform, opacity;
 }
 
-.card.is-flipped { transform: rotateY(180deg); }
 .card.swipe-left { animation: swipeLeft 0.34s ease both; }
 .card.swipe-right { animation: swipeRight 0.34s ease both; }
 .card.is-dragging { transition: none; }
@@ -254,6 +253,26 @@ button { border: none; cursor: pointer; }
   border: 1px solid rgba(33, 31, 27, 0.1);
   box-shadow: 0 24px 70px rgba(33, 31, 27, 0.18);
   text-align: center;
+  transition: transform 0.5s cubic-bezier(.2,.85,.28,1.15), border-color 0.22s ease, box-shadow 0.22s ease, background 0.22s ease;
+  transform: rotateY(0deg);
+}
+
+.card.drag-know .card-face {
+  border-color: rgba(79, 155, 100, 0.62);
+  box-shadow: 0 28px 80px rgba(79, 155, 100, 0.28);
+}
+
+.card.drag-unknown .card-face {
+  border-color: rgba(226, 95, 82, 0.62);
+  box-shadow: 0 28px 80px rgba(226, 95, 82, 0.28);
+}
+
+.card.is-flipped .front {
+  transform: rotateY(-180deg);
+}
+
+.card.is-flipped .back {
+  transform: rotateY(0deg);
 }
 
 .card-face::before {
@@ -376,6 +395,30 @@ button { border: none; cursor: pointer; }
   color: white;
   background: linear-gradient(135deg, var(--accent), var(--accent-2));
   box-shadow: 0 16px 32px rgba(255, 122, 61, 0.34);
+}
+
+.undo-row {
+  display: grid;
+  margin-top: 12px;
+}
+
+.undo-btn {
+  min-height: 52px;
+  border-radius: 20px;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.68);
+  border: 1px solid var(--line);
+  font-weight: 900;
+  transition: transform 0.18s ease, opacity 0.18s ease, box-shadow 0.18s ease;
+}
+
+.undo-btn:hover {
+  transform: translateY(-2px);
+}
+
+.undo-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
 }
 
 .search-row {
@@ -560,6 +603,10 @@ button { border: none; cursor: pointer; }
         <button class="action-btn unknown-btn" id="unknownBtn" type="button">← Не знаю</button>
         <button class="action-btn flip-btn" id="flipBtn" type="button">Показать перевод</button>
         <button class="action-btn known-btn" id="knownBtn" type="button">Знаю →</button>
+      </div>
+
+      <div class="undo-row">
+        <button class="undo-btn" id="undoBtn" type="button" disabled>↩ Вернуться к прошлой карточке</button>
       </div>
 
       <div class="search-row">
@@ -3038,6 +3085,7 @@ const els = {
   flipBtn: document.getElementById("flipBtn"),
   unknownBtn: document.getElementById("unknownBtn"),
   knownBtn: document.getElementById("knownBtn"),
+  undoBtn: document.getElementById("undoBtn"),
   mixBtn: document.getElementById("mixBtn"),
   resetBtn: document.getElementById("resetBtn"),
   searchInput: document.getElementById("searchInput"),
@@ -3051,6 +3099,7 @@ let activeMode = "terms";
 let isAnimating = false;
 let toastTimer = null;
 let pointerStart = null;
+let suppressNextClick = false;
 
 const state = {
   terms: createState(DATA.terms),
@@ -3065,7 +3114,8 @@ function createState(cards) {
     cycle: shuffle(normalized),
     unknown: [],
     index: 0,
-    round: 1
+    round: 1,
+    history: []
   };
 }
 
@@ -3119,6 +3169,7 @@ function render() {
   els.frontHint.textContent = config.frontHint;
   els.roundText.textContent = String(s.round);
   els.repeatText.textContent = String(s.unknown.length);
+  els.undoBtn.disabled = s.history.length === 0;
 
   if (!item) {
     els.frontText.textContent = "Ничего не найдено";
@@ -3164,6 +3215,13 @@ function answer(knows, direction) {
   isAnimating = true;
   setFlipped(false);
 
+  s.history.push({
+    cycle: [...s.cycle],
+    unknown: [...s.unknown],
+    index: s.index,
+    round: s.round
+  });
+
   if (!knows) {
     s.unknown.push(item);
   }
@@ -3192,6 +3250,7 @@ function mixCurrentCycle() {
   s.cycle = shuffle(remaining.length ? remaining : s.filtered);
   s.index = 0;
   s.unknown = [];
+  s.history = [];
 
   els.mixBtn.animate([
     { transform: "rotate(0deg) scale(1)" },
@@ -3214,6 +3273,7 @@ function resetMode(mode = activeMode) {
   s.unknown = [];
   s.index = 0;
   s.round = 1;
+  s.history = [];
   render();
 }
 
@@ -3232,17 +3292,29 @@ function switchMode(mode) {
 
 function handlePointerDown(event) {
   if (isAnimating || !currentCard()) return;
-  pointerStart = { x: event.clientX, y: event.clientY };
+  pointerStart = {
+    x: event.clientX,
+    y: event.clientY,
+    moved: false
+  };
   els.card.classList.add("is-dragging");
 }
 
 function handlePointerMove(event) {
-  if (!pointerStart || isAnimating || els.card.classList.contains("is-flipped")) return;
+  if (!pointerStart || isAnimating) return;
+
   const dx = event.clientX - pointerStart.x;
   const dy = event.clientY - pointerStart.y;
+
+  if (Math.abs(dx) < 5 && Math.abs(dy) < 5) return;
+  pointerStart.moved = true;
+
   if (Math.abs(dx) < Math.abs(dy)) return;
-  const rotate = Math.max(-10, Math.min(10, dx / 18));
-  els.card.style.transform = `translateX(${dx * 0.22}px) rotate(${rotate}deg)`;
+
+  const limitedX = Math.max(-150, Math.min(150, dx));
+  const rotate = Math.max(-11, Math.min(11, dx / 16));
+  els.card.style.transform = `translateX(${limitedX * 0.42}px) rotate(${rotate}deg)`;
+  updateDragVisual(dx);
 }
 
 function handlePointerUp(event) {
@@ -3250,12 +3322,18 @@ function handlePointerUp(event) {
 
   const dx = event.clientX - pointerStart.x;
   const dy = event.clientY - pointerStart.y;
+  const moved = pointerStart.moved;
 
   pointerStart = null;
-  els.card.classList.remove("is-dragging");
+  clearDragState();
   els.card.style.transform = "";
 
-  if (Math.abs(dx) > 58 && Math.abs(dx) > Math.abs(dy)) {
+  if (moved) {
+    suppressNextClick = true;
+    setTimeout(() => { suppressNextClick = false; }, 80);
+  }
+
+  if (Math.abs(dx) > 88 && Math.abs(dx) > Math.abs(dy) * 1.15) {
     if (dx < 0) {
       answer(false, "left");
     } else {
@@ -3264,15 +3342,43 @@ function handlePointerUp(event) {
   }
 }
 
+
+function undoLastAnswer() {
+  const s = currentState();
+  const last = s.history.pop();
+
+  if (!last) {
+    showToast("Нет прошлой карточки");
+    return;
+  }
+
+  s.cycle = [...last.cycle];
+  s.unknown = [...last.unknown];
+  s.index = last.index;
+  s.round = last.round;
+  render();
+  showToast("Вернулся к прошлой карточке");
+}
+
+function clearDragState() {
+  els.card.classList.remove("is-dragging", "drag-know", "drag-unknown");
+}
+
+function updateDragVisual(dx) {
+  els.card.classList.toggle("drag-know", dx > 28);
+  els.card.classList.toggle("drag-unknown", dx < -28);
+}
+
 function bindEvents() {
-  els.card.addEventListener("click", (event) => {
-    if (Math.abs((event.clientX || 0) - (pointerStart?.x || 0)) > 8) return;
+  els.card.addEventListener("click", () => {
+    if (suppressNextClick) return;
     toggleFlip();
   });
 
   els.flipBtn.addEventListener("click", toggleFlip);
   els.unknownBtn.addEventListener("click", () => answer(false, "left"));
   els.knownBtn.addEventListener("click", () => answer(true, "right"));
+  els.undoBtn.addEventListener("click", undoLastAnswer);
   els.mixBtn.addEventListener("click", mixCurrentCycle);
   els.resetBtn.addEventListener("click", () => {
     resetMode();
@@ -3296,7 +3402,7 @@ function bindEvents() {
   window.addEventListener("pointerup", handlePointerUp);
   window.addEventListener("pointercancel", () => {
     pointerStart = null;
-    els.card.classList.remove("is-dragging");
+    clearDragState();
     els.card.style.transform = "";
   });
 
