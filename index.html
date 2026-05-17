@@ -112,7 +112,7 @@ button { border: none; cursor: pointer; }
 
 .tabs {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, 1fr);
   gap: 8px;
   padding: 6px;
   margin-bottom: 14px;
@@ -383,6 +383,31 @@ button { border: none; cursor: pointer; }
   text-align: center;
 }
 
+.card[data-mode="abbreviations"] .front > div:first-child,
+.card[data-mode="abbreviations"] .back > div:first-child {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.card[data-mode="abbreviations"] .front .term {
+  font-size: clamp(48px, 11vw, 92px);
+  line-height: 0.95;
+  letter-spacing: -0.08em;
+}
+
+.card[data-mode="abbreviations"] .back .definition {
+  max-width: 92%;
+  margin: 24px auto 0;
+  font-size: clamp(28px, 4.4vw, 52px);
+  line-height: 1.08;
+  letter-spacing: -0.055em;
+  font-weight: 950;
+  text-align: center;
+}
+
 .actions {
   display: grid;
   grid-template-columns: 1fr 1.18fr 1fr;
@@ -547,6 +572,15 @@ button { border: none; cursor: pointer; }
     font-size: clamp(28px, 9vw, 44px);
     text-align: center;
   }
+
+  .card[data-mode="abbreviations"] .front .term {
+    font-size: clamp(42px, 17vw, 76px);
+  }
+
+  .card[data-mode="abbreviations"] .back .definition {
+    font-size: clamp(25px, 8vw, 42px);
+    text-align: center;
+  }
   .actions { grid-template-columns: 1fr; }
   .action-btn { min-height: 54px; border-radius: 18px; }
   .search-row { grid-template-columns: 1fr; }
@@ -574,6 +608,7 @@ button { border: none; cursor: pointer; }
       <div class="tabs" role="tablist" aria-label="Режим тренировки">
         <button class="tab-btn is-active" type="button" role="tab" aria-selected="true" data-mode="terms">Перевод</button>
         <button class="tab-btn" type="button" role="tab" aria-selected="false" data-mode="definitions">Определения</button>
+        <button class="tab-btn" type="button" role="tab" aria-selected="false" data-mode="abbreviations">Аббревиатуры</button>
       </div>
 
       <div class="stats">
@@ -3068,13 +3103,510 @@ window.TRAINER_DATA = {
       "front": "Turing Test",
       "back": "is a test of whether a computer can show intelligent behavior like that of a human, done by seeing if a tester can tell whether the answers to a set of questions come from the computer or from a person."
     }
-  ]
+  ],
+  "abbreviations": [
+      {
+        "id": "abbr-001",
+        "front": "2FA",
+        "back": "Two-Factor Authentication"
+    },
+    {
+        "id": "abbr-002",
+        "front": "ADSL",
+        "back": "Asymmetric Digital Subscriber Line"
+    },
+    {
+        "id": "abbr-003",
+        "front": "AI",
+        "back": "Artificial Intelligence"
+    },
+    {
+        "id": "abbr-004",
+        "front": "ALU",
+        "back": "Arithmetic Logic Unit"
+    },
+    {
+        "id": "abbr-005",
+        "front": "ANN",
+        "back": "Artificial Neural Network"
+    },
+    {
+        "id": "abbr-006",
+        "front": "AR",
+        "back": "Augmented Reality"
+    },
+    {
+        "id": "abbr-007",
+        "front": "ASCII",
+        "back": "American Standard Code for Information Interchange"
+    },
+    {
+        "id": "abbr-008",
+        "front": "BASIC",
+        "back": "Beginner's All-purpose Symbolic Instruction Code"
+    },
+    {
+        "id": "abbr-009",
+        "front": "BD",
+        "back": "Blu-ray disc"
+    },
+    {
+        "id": "abbr-010",
+        "front": "BIOS",
+        "back": "Basic Input/Output System"
+    },
+    {
+        "id": "abbr-011",
+        "front": "CAPTCHA",
+        "back": "Completely Automated Public Turing test to tell Computers and Humans Apart"
+    },
+    {
+        "id": "abbr-012",
+        "front": "CD-R",
+        "back": "Compact Disc Recordable"
+    },
+    {
+        "id": "abbr-013",
+        "front": "CD-ROM",
+        "back": "Compact Disc Read-Only Memory"
+    },
+    {
+        "id": "abbr-014",
+        "front": "CD-RW",
+        "back": "Compact Disc Rewritable"
+    },
+    {
+        "id": "abbr-015",
+        "front": "CGI",
+        "back": "Computer-Generated Image"
+    },
+    {
+        "id": "abbr-016",
+        "front": "CLI",
+        "back": "Command Line Interface"
+    },
+    {
+        "id": "abbr-017",
+        "front": "CNN",
+        "back": "Convolutional Neural Network"
+    },
+    {
+        "id": "abbr-018",
+        "front": "CPU",
+        "back": "Central Processing Unit"
+    },
+    {
+        "id": "abbr-019",
+        "front": "CSS",
+        "back": "Cascading Style Sheets"
+    },
+    {
+        "id": "abbr-020",
+        "front": "DDoS",
+        "back": "Distributed Denial of Service"
+    },
+    {
+        "id": "abbr-021",
+        "front": "DDR4",
+        "back": "Double Data Rate 4"
+    },
+    {
+        "id": "abbr-022",
+        "front": "DNS",
+        "back": "Domain Name System"
+    },
+    {
+        "id": "abbr-023",
+        "front": "DoS",
+        "back": "Denial of Service"
+    },
+    {
+        "id": "abbr-024",
+        "front": "DRAM",
+        "back": "Dynamic Random Access Memory"
+    },
+    {
+        "id": "abbr-025",
+        "front": "DSL",
+        "back": "Digital Subscriber Line"
+    },
+    {
+        "id": "abbr-026",
+        "front": "DVD",
+        "back": "Digital Versatile Disc"
+    },
+    {
+        "id": "abbr-027",
+        "front": "EEPROM",
+        "back": "Electrically Erasable Programmable Read-Only Memory"
+    },
+    {
+        "id": "abbr-028",
+        "front": "ENIAC",
+        "back": "Electronic Numerical Integrator and Computer"
+    },
+    {
+        "id": "abbr-029",
+        "front": "EPROM",
+        "back": "Erasable Programmable Read-Only Memory"
+    },
+    {
+        "id": "abbr-030",
+        "front": "FGT",
+        "back": "Floating Gate Transistors"
+    },
+    {
+        "id": "abbr-031",
+        "front": "FORTRAN",
+        "back": "FORmula TRANslator"
+    },
+    {
+        "id": "abbr-032",
+        "front": "FTP",
+        "back": "File Transfer Protocol"
+    },
+    {
+        "id": "abbr-033",
+        "front": "GB",
+        "back": "Gigabyte"
+    },
+    {
+        "id": "abbr-034",
+        "front": "GHz",
+        "back": "Gigahertz"
+    },
+    {
+        "id": "abbr-035",
+        "front": "GSM",
+        "back": "Global System for Mobile Communications"
+    },
+    {
+        "id": "abbr-036",
+        "front": "GUI",
+        "back": "Graphical User Interface"
+    },
+    {
+        "id": "abbr-037",
+        "front": "HDD",
+        "back": "Hard Disk Drive"
+    },
+    {
+        "id": "abbr-038",
+        "front": "HLAI",
+        "back": "Human-Like Artificial Intelligence; Human-Level Artificial Intelligence"
+    },
+    {
+        "id": "abbr-039",
+        "front": "HTML",
+        "back": "Hyper Text Markup Language"
+    },
+    {
+        "id": "abbr-040",
+        "front": "HTTP",
+        "back": "Hyper Text Transfer Protocol"
+    },
+    {
+        "id": "abbr-041",
+        "front": "IBM",
+        "back": "International Business Machines"
+    },
+    {
+        "id": "abbr-042",
+        "front": "ICANN",
+        "back": "Internet Corporation for Assigned Names and Numbers"
+    },
+    {
+        "id": "abbr-043",
+        "front": "IoT",
+        "back": "the Internet of Things"
+    },
+    {
+        "id": "abbr-044",
+        "front": "IR",
+        "back": "Instruction Register"
+    },
+    {
+        "id": "abbr-045",
+        "front": "ISDN",
+        "back": "Integrated Services Digital Network"
+    },
+    {
+        "id": "abbr-046",
+        "front": "ISP",
+        "back": "Internet Service Provider"
+    },
+    {
+        "id": "abbr-047",
+        "front": "JS",
+        "back": "JavaScript"
+    },
+    {
+        "id": "abbr-048",
+        "front": "JVM",
+        "back": "Java Virtual Machine"
+    },
+    {
+        "id": "abbr-049",
+        "front": "KB",
+        "back": "Kilobyte"
+    },
+    {
+        "id": "abbr-050",
+        "front": "LAN",
+        "back": "Local Area Network"
+    },
+    {
+        "id": "abbr-051",
+        "front": "LCD",
+        "back": "Liquid Crystal Display"
+    },
+    {
+        "id": "abbr-052",
+        "front": "MAC address",
+        "back": "Media Access Control address"
+    },
+    {
+        "id": "abbr-053",
+        "front": "MAN",
+        "back": "Metropolitan Area Network"
+    },
+    {
+        "id": "abbr-054",
+        "front": "MFA",
+        "back": "Multi-Factor Authentication"
+    },
+    {
+        "id": "abbr-055",
+        "front": "ML",
+        "back": "Machine Learning"
+    },
+    {
+        "id": "abbr-056",
+        "front": "MROM",
+        "back": "Masked Read-Only Memory"
+    },
+    {
+        "id": "abbr-057",
+        "front": "MS Word",
+        "back": "Microsoft Word"
+    },
+    {
+        "id": "abbr-058",
+        "front": "MS-DOS",
+        "back": "Microsoft Disk Operating System"
+    },
+    {
+        "id": "abbr-059",
+        "front": "NAND Flash",
+        "back": "Not AND Flash"
+    },
+    {
+        "id": "abbr-060",
+        "front": "NN",
+        "back": "Neural Networks"
+    },
+    {
+        "id": "abbr-061",
+        "front": "NOR Flash",
+        "back": "Not OR Flash"
+    },
+    {
+        "id": "abbr-062",
+        "front": "OOP",
+        "back": "Object-Oriented Programming"
+    },
+    {
+        "id": "abbr-063",
+        "front": "OS",
+        "back": "Operating System"
+    },
+    {
+        "id": "abbr-064",
+        "front": "OSI",
+        "back": "Open System Interconnection"
+    },
+    {
+        "id": "abbr-065",
+        "front": "PAN",
+        "back": "Personal Area Network"
+    },
+    {
+        "id": "abbr-066",
+        "front": "PC",
+        "back": "Personal Computer"
+    },
+    {
+        "id": "abbr-067",
+        "front": "PC",
+        "back": "Program Counter"
+    },
+    {
+        "id": "abbr-068",
+        "front": "PHP",
+        "back": "Hypertext Preprocessor"
+    },
+    {
+        "id": "abbr-069",
+        "front": "PROM",
+        "back": "Programmable Read-Only Memory"
+    },
+    {
+        "id": "abbr-070",
+        "front": "RAM",
+        "back": "Random Access Memory"
+    },
+    {
+        "id": "abbr-071",
+        "front": "RNN",
+        "back": "Recurrent Neural Network"
+    },
+    {
+        "id": "abbr-072",
+        "front": "ROM",
+        "back": "Read-Only Memory"
+    },
+    {
+        "id": "abbr-073",
+        "front": "SDRAM",
+        "back": "Synchronous Dynamic Random Access Memory"
+    },
+    {
+        "id": "abbr-074",
+        "front": "SDSL",
+        "back": "Symmetric Digital Subscriber Line"
+    },
+    {
+        "id": "abbr-075",
+        "front": "SEO",
+        "back": "Search Engine Optimization"
+    },
+    {
+        "id": "abbr-076",
+        "front": "SMT",
+        "back": "Simultaneous Multi-threading Technology"
+    },
+    {
+        "id": "abbr-077",
+        "front": "SMTP",
+        "back": "Simple Mail Transfer Protocol"
+    },
+    {
+        "id": "abbr-078",
+        "front": "SQL",
+        "back": "Structured Query Language"
+    },
+    {
+        "id": "abbr-079",
+        "front": "SRAM",
+        "back": "Static Random Access Memory"
+    },
+    {
+        "id": "abbr-080",
+        "front": "SSD",
+        "back": "Solid State Drive"
+    },
+    {
+        "id": "abbr-081",
+        "front": "SSL",
+        "back": "Secure Sockets Layer"
+    },
+    {
+        "id": "abbr-082",
+        "front": "TB",
+        "back": "TByte, Terabyte"
+    },
+    {
+        "id": "abbr-083",
+        "front": "TCP/IP",
+        "back": "the Transmission Control Protocol and the Internet Protocol"
+    },
+    {
+        "id": "abbr-084",
+        "front": "UDP",
+        "back": "User Datagram Protocol"
+    },
+    {
+        "id": "abbr-085",
+        "front": "UIDs",
+        "back": "Unique Identifiers"
+    },
+    {
+        "id": "abbr-086",
+        "front": "UNIVAC I",
+        "back": "Universal Automatic Computer"
+    },
+    {
+        "id": "abbr-087",
+        "front": "URL",
+        "back": "Uniform Resource Locator"
+    },
+    {
+        "id": "abbr-088",
+        "front": "USB",
+        "back": "Universal Serial Bus"
+    },
+    {
+        "id": "abbr-089",
+        "front": "VDSL",
+        "back": "Very High Bit Rate DSL"
+    },
+    {
+        "id": "abbr-090",
+        "front": "VR",
+        "back": "Virtual Reality"
+    },
+    {
+        "id": "abbr-091",
+        "front": "WAF",
+        "back": "Web Application Protection Firewall"
+    },
+    {
+        "id": "abbr-092",
+        "front": "WAN",
+        "back": "Wide Area Network"
+    },
+    {
+        "id": "abbr-093",
+        "front": "Wi-Fi",
+        "back": "Wireless Fidelity"
+    },
+    {
+        "id": "abbr-094",
+        "front": "WiMAX",
+        "back": "Worldwide Interoperability for Microwave Access"
+    },
+    {
+        "id": "abbr-095",
+        "front": "WIMP",
+        "back": "Windows Icons Menus Pointer"
+    },
+    {
+        "id": "abbr-096",
+        "front": "WLAN",
+        "back": "Wireless Local Area Network"
+    },
+    {
+        "id": "abbr-097",
+        "front": "WWW",
+        "back": "World Wide Web"
+    },
+    {
+        "id": "abbr-098",
+        "front": "WYSIWYG",
+        "back": "What You See Is What You Get"
+    },
+    {
+        "id": "abbr-099",
+        "front": "Yandex",
+        "back": "Yet Another iNDEXer"
+    }
+]
 };
 
   </script>
   <script>
 
-const DATA = window.TRAINER_DATA || { terms: [], definitions: [] };
+const DATA = window.TRAINER_DATA || { terms: [], definitions: [], abbreviations: [] };
 
 const CONFIG = {
   terms: {
@@ -3092,6 +3624,14 @@ const CONFIG = {
     flipText: "Показать определение",
     flipBackText: "Показать термин",
     frontHint: "Нажми на карточку, чтобы увидеть определение."
+  },
+  abbreviations: {
+    name: "Аббревиатуры",
+    frontTag: "Аббревиатура",
+    backTag: "Расшифровка",
+    flipText: "Показать расшифровку",
+    flipBackText: "Показать аббревиатуру",
+    frontHint: "Нажми на карточку, чтобы увидеть расшифровку."
   }
 };
 
@@ -3126,7 +3666,8 @@ let suppressNextClick = false;
 
 const state = {
   terms: createState(DATA.terms),
-  definitions: createState(DATA.definitions)
+  definitions: createState(DATA.definitions),
+  abbreviations: createState(DATA.abbreviations)
 };
 
 function createState(cards) {
